@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.insertFinalNewline": true,
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  /* Tailwind CSS v4 @theme 문법 경고 무시 */
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+
+  /* Prettier가 CSS를 처리할 때 Tailwind 문법을 잘 인식하도록 설정 */
+  "prettier.documentSelectors": ["**/*.css"]
+}

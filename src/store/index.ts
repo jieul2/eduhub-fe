@@ -8,6 +8,7 @@ type TotalStore = undefined;
 
 // 3. 통합 스토어 생성
 export const useStore = create<TotalStore>()(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   devtools((...a) => ({
     // 새로운 기능(슬라이스)이 생길 때마다 여기에 추가하면 됩니다.
   })),
