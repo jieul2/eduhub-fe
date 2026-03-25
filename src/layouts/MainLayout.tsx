@@ -9,13 +9,10 @@ interface MainLayoutProps {
 }
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
-	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-	useEffect(() => {
-		if (window.innerWidth < 768) {
-			setIsSidebarOpen(false);
-		}
-	}, []);
+	const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+		if (typeof window === 'undefined') return true;
+		return window.innerWidth >= 768;
+	});
 
 	const toggleSidebar = () => {
 		setIsSidebarOpen((prev) => !prev);
