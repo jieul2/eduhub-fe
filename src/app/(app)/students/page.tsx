@@ -6,25 +6,23 @@ import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon"
 import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
 import { useStore } from "../../../store";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 const Students = () => {
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const { students, isLoading, error, fetchStudents } = useStore();
+  const { students, isLoading, error, pagination, fetchStudents } = useStore();
 
   useEffect(() => {
-    fetchStudents();
-  }, [fetchStudents]);
+    fetchStudents({ page: 1, limit: itemsPerPage });
+  }, [fetchStudents, itemsPerPage]);
 
   useEffect(() => {
-    // itemsPerPage 변경 시 데이터 재로딩 로직 구현
     setItemsPerPage(itemsPerPage);
-    // ?per_page=${itemsPerPage} 형태로 API 호출하여 데이터 재로딩
-    // 쿼리에 페이지네이션 정보 추가 예시: /api/students?per_page=${itemsPerPage}&page=1 백엔드 구현 필요.\
   }, [itemsPerPage]);
 
   return (
-    <div className="mt-16 p-8 space-y-8 max-w-400 mx-auto w-full">
+    <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
@@ -64,7 +62,7 @@ const Students = () => {
             <span>전체 선택</span>
           </div>
           <div className="text-sm text-slate-500">
-            총 <span className="text-blue-700 font-bold">{students.length}</span> 건
+            총 <span className="text-blue-700 font-bold">{pagination.total}</span> 건
           </div>
           <div className="h-4 w-px bg-slate-200"></div>
           <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -101,6 +99,7 @@ const Students = () => {
       </div>
       {/* 학생 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
       <StudentsTable users={Array.isArray(students) ? students : []} />
+      {/* 페이지네이션 */}
     </div>
   );
 };

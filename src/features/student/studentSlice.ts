@@ -13,9 +13,15 @@ interface Student {
 
 interface StudentSlice {
   students: Student[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
   isLoading: boolean;
   error: string | null;
-  fetchStudents: () => Promise<void>;
+  fetchStudents: (params?: { page: number; limit: number; name?: string}) => Promise<void>;
 }
 
 const createStudentSlice: StateCreator<
@@ -25,18 +31,25 @@ const createStudentSlice: StateCreator<
   StudentSlice
 > = (set, get) => ({
   students: [],
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  },
   isLoading: false,
   error: null,
-  fetchStudents: async () => {
+  fetchStudents: async (params = {page:1, limit:10}) => {
     try {
       // pending 상태 업데이트
       set({ isLoading: true, error: null });
-      const response = await api.get("/students");
+      const response = await api.get("/students", { params });
       if (!response) {
         throw new Error("Failed to fetch students");
       }
+      console.log("Fetched students data:", response.data.pagination);
       // fulfilled 상태 업데이트
-      set({ students: response.data.students, isLoading: false });
+      set({ students: response.data.students, pagination: response.data.pagination, isLoading: false });
     } catch (error) {
       if (error instanceof Error) {
         // rejected 상태 업데이트

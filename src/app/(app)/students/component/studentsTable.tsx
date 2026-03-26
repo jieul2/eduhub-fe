@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, ChevronLeft } from "lucide-react";
+
 
 // users 임시 데이터, 백엔드 API 연동 시 제거 예정
 interface users {
@@ -55,14 +55,9 @@ const StudentsTable = ({ users }: { users: users[] }) => {
                   />
                 </td>
                 <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
-                <td className="px-6 py-4 text-slate-600">{user.birthDate}</td>
+                <td className="px-6 py-4 text-slate-600">{user.birthDate? new Date(user.birthDate).toLocaleDateString() : ""}</td>
                 <td className="px-6 py-4 text-slate-600">
-                  {user.gender === "남" ||
-                  user.gender === "남자" ||
-                  user.gender === "male" ||
-                  user.gender === "남성"
-                    ? "남성"
-                    : "여성"}
+                  {user.gender === "male" ? "남성" : "여성"}
                 </td>
                 <td className="px-6 py-4 text-slate-600">{user.phone}</td>
                 <td className="px-6 py-4 text-slate-600">{user.email}</td>
@@ -77,26 +72,7 @@ const StudentsTable = ({ users }: { users: users[] }) => {
         </table>
       </div>
       {/* Pagination 백엔드 구현 및 프론트엔드 연동 필요 (하드코딩) */}
-      <div className="px-6 py-4 flex items-center justify-between bg-slate-50/50">
-        <div className="text-xs text-slate-500">Showing 1 to 10 of 10 results</div>
-        <div className="flex gap-1">
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-400">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-xs">
-            1
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-600 text-xs">
-            2
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-600 text-xs">
-            3
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white text-slate-400">
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      
     </div>
   );
 };
