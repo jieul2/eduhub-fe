@@ -1,16 +1,12 @@
-import InputWithIcon from "../components/ui/input-with-icon/InputWithIcon";
-import { Search } from "lucide-react";
+import InputWithIcon from '../components/ui/input-with-icon/InputWithIcon';
+import { Search } from 'lucide-react';
+import { Dashboard } from '@/components/dashboard/Dashboard';
+import DashboardPage from '@/components/dashboard/page';
 
 export default function Home() {
-  return (
-    <div>
-      <InputWithIcon
-        size="xl"
-        color="default"
-        readOnly={false}
-        leftIcon={<Search />}
-        placeholder="Search"
-      />
-    </div>
-  );
+	return (
+		<div>
+			<DashboardPage />
+		</div>
+	);
 }
