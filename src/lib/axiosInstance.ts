@@ -6,6 +6,7 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+console.log("Axios instance created with baseURL:", process.env.NEXT_PUBLIC_API_URL);
 
 // 요청 인터셉터: 로깅 + 인증 토큰 삽입
 axiosInstance.interceptors.request.use(
