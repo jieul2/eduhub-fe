@@ -7,6 +7,7 @@ import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
 import { useStore } from "../../../store";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import Pagination from "../../../components/pagination/Pagination";
 
 const Students = () => {
   // n개씩 보기 useState구현
@@ -100,6 +101,11 @@ const Students = () => {
       {/* 학생 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
       <StudentsTable users={Array.isArray(students) ? students : []} />
       {/* 페이지네이션 */}
+      <Pagination
+        page={pagination.page}
+        totalPages={pagination.totalPages}
+        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage })}
+      />
     </div>
   );
 };
