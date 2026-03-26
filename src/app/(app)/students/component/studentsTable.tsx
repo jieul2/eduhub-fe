@@ -11,7 +11,6 @@ interface users {
   birthDate: string;
   phone: string;
   email: string;
-  password: string;
 }
 const StudentsTable = ({ users }: { users: users[] }) => {
   return (
@@ -58,7 +57,12 @@ const StudentsTable = ({ users }: { users: users[] }) => {
                 <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
                 <td className="px-6 py-4 text-slate-600">{user.birthDate}</td>
                 <td className="px-6 py-4 text-slate-600">
-                  {user.gender === "남" ? "남성" : "여성"}
+                  {user.gender === "남" ||
+                  user.gender === "남자" ||
+                  user.gender === "male" ||
+                  user.gender === "남성"
+                    ? "남성"
+                    : "여성"}
                 </td>
                 <td className="px-6 py-4 text-slate-600">{user.phone}</td>
                 <td className="px-6 py-4 text-slate-600">{user.email}</td>

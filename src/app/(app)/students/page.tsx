@@ -2,61 +2,25 @@
 
 import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
 import StudentsTable from "./component/studentsTable";
-import InputWithIcon from "../../components/ui/input-with-icon/InputWithIcon";
-import Button from "../../components/ui/Button/Button";
+import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
+import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
+import { useStore } from "../../../store";
 
 const Students = () => {
-  const testUsers = [
-    {
-      username: "강다니엘",
-      role: "user",
-      status: "active",
-      gender: "남",
-      birthDate: "1996-12-10",
-      phone: "010-1234-5678",
-      email: "daniel.k@academia.edu",
-      password: "hashed_password_1",
-    },
-    {
-      username: "지수",
-      role: "user",
-      status: "active",
-      gender: "여",
-      birthDate: "1995-01-03",
-      phone: "010-9876-5432",
-      email: "jisoo.v@academia.edu",
-      password: "hashed_password_2",
-    },
-    {
-      username: "민호",
-      role: "user",
-      status: "active",
-      gender: "남",
-      birthDate: "1991-12-09",
-      phone: "010-4455-6677",
-      email: "minho.park@academia.edu",
-      password: "hashed_password_3",
-    },
-    {
-      username: "윤지",
-      role: "user",
-      status: "active",
-      gender: "여",
-      birthDate: "2000-05-20",
-      phone: "010-8899-0011",
-      email: "yj.lee@academia.edu",
-      password: "hashed_password_4",
-    },
-  ];
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const { students, isLoading, error, fetchStudents } = useStore();
+
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   useEffect(() => {
     // itemsPerPage 변경 시 데이터 재로딩 로직 구현
     setItemsPerPage(itemsPerPage);
     // ?per_page=${itemsPerPage} 형태로 API 호출하여 데이터 재로딩
-    // 쿼리에 페이지네이션 정보 추가 예시: /api/students?per_page=${itemsPerPage}&page=1 백엔드 구현 필요.
+    // 쿼리에 페이지네이션 정보 추가 예시: /api/students?per_page=${itemsPerPage}&page=1 백엔드 구현 필요.\
   }, [itemsPerPage]);
 
   return (
@@ -100,7 +64,7 @@ const Students = () => {
             <span>전체 선택</span>
           </div>
           <div className="text-sm text-slate-500">
-            총 <span className="text-blue-700 font-bold">{itemsPerPage}</span> 건
+            총 <span className="text-blue-700 font-bold">{students.length}</span> 건
           </div>
           <div className="h-4 w-px bg-slate-200"></div>
           <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -136,7 +100,7 @@ const Students = () => {
         </div>
       </div>
       {/* 학생 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
-      <StudentsTable users={testUsers} />
+      <StudentsTable users={Array.isArray(students) ? students : []} />
     </div>
   );
 };
