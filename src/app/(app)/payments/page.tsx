@@ -1,58 +1,55 @@
 "use client";
 
 import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
-import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
 import { useStore } from "../../../store";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
-import StudentRegistrationModal from "./component/StudentRegistrationModal";
+import PaymentsTable from "./component/paymentsTable";
 
-const Students = () => {
+
+const Payments = () => {
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const { students, isLoading, error, pagination, fetchStudents } = useStore();
+  const { payments, isLoading, error, pagination, fetchPayments } = useStore();
   const [isOpen, setIsOpen] = React.useState(false);
 
   useEffect(() => {
-    fetchStudents({ page: 1, limit: itemsPerPage });
-  }, [fetchStudents, itemsPerPage]);
+    fetchPayments();
+  }, [fetchPayments]);
 
-  useEffect(() => {
-    setItemsPerPage(itemsPerPage);
-  }, [itemsPerPage]);
+
 
   return (
     <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
-            학생조회 (Table View)
+            결제조회 (Table View)
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Manage and monitor all registered students within the institution.
+            Manage and monitor all registered payments within the institution.
           </p>
         </div>
         <div className="flex gap-2">
-          {/* 학생 등록 (유저생성 테스트) */}
+          {/* 결제 등록 (유저생성 테스트) */}
           <Button size="lg" variant="primary" onClick={() => setIsOpen(true)}>
             <UserPlus className="w-4 h-4" />
-            학생 등록
+            결제 등록
           </Button>
         </div>
       </div>
-      <StudentRegistrationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
       <section className="bg-surface-container-low p-6 rounded-xl border-l-[3px] border-primary flex items-start gap-4">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Info className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="font-bold text-on-surface-variant text-base">학생 정보 안내</h3>
+          <h3 className="font-bold text-on-surface-variant text-base">결제 정보 안내</h3>
           <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-            학생 목록에서는 학번, 소속 학과, 학년 등 필수 정보를 한눈에 확인할 수 있습니다. 상세
-            조회를 원하시면 성명을 클릭하십시오. 개인정보 보호를 위해 휴대폰 번호와 이메일은 권한이
+            결제 목록에서는 결제 ID, 결제 금액, 결제 상태 등 필수 정보를 한눈에 확인할 수 있습니다. 상세
+            조회를 원하시면 결제 ID를 클릭하십시오. 개인정보 보호를 위해 결제 수단과 카드 번호는 권한이
             있는 사용자에게만 노출됩니다.
           </p>
         </div>
@@ -102,16 +99,12 @@ const Students = () => {
           </Button>
         </div>
       </div>
-      {/* 학생 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
-      <StudentsTable users={Array.isArray(students) ? students : []} />
+      {/* 결제 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
+      <PaymentsTable payments={Array.isArray(payments) ? payments : []} />
       {/* 페이지네이션 */}
-      <Pagination
-        page={pagination.page}
-        totalPages={pagination.totalPages}
-        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage })}
-      />
+
     </div>
   );
 };
 
-export default Students;
+export default Payments;

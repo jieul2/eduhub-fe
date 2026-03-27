@@ -1,7 +1,7 @@
 import { StateCreator } from "zustand";
 import api from "../../lib/axiosInstance";
 
-interface Student {
+export interface Student {
   username: string;
   role: string;
   status: string;
