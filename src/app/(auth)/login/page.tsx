@@ -73,7 +73,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
         {errorMsg && <p className="text-sm font-medium text-danger">{errorMsg}</p>}
         
-        <Button type="submit" isFullWidth disabled={isLoading}>
+        <Button type="submit" isFullWidth isLoading={isLoading}>
           {isLoading ? '로그인 중...' : '로그인'}
         </Button>
 
