@@ -7,7 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getNavGroups } from './Sidebar';
 import { UserRole } from './Layout.types';
-// import { Button } from "@/components/ui/Button"; // 필요시 사용
+import { useAuthStore } from '@/store/authStore';
 
 interface HeaderProps {
     isMobileMenuOpen: boolean;
@@ -18,49 +18,21 @@ interface HeaderProps {
 
 export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, role }: HeaderProps) => {
     const [isScrolled, setIsScrolled] = useState(false);
-    const [username, setUsername] = useState<string | null>(null); // 유저 이름 상태 추가
     const pathname = usePathname();
-    const router = useRouter();
+
+    const { user, isLoggedIn, logout } = useAuthStore();
+    
+    // Next.js SSR Hydration 에러 방지용 (새로고침 시 깜빡임 방지)
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    // 페이지 이동(pathname 변경) 또는 컴포넌트 마운트 시 토큰 확인
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                // 별도의 라이브러리 없이 JWT 토큰의 payload 부분 디코딩 (base64 해독)
-                const payloadBase64 = token.split('.')[1];
-                const decodedJson = atob(payloadBase64);
-                const payload = JSON.parse(decodedJson);
-                
-                if (payload && payload.username) {
-                    setUsername(payload.username);
-                }
-            } catch (error) {
-                console.error('토큰 해독 중 오류 발생:', error);
-                setUsername(null);
-            }
-        } else {
-            setUsername(null);
-        }
-    }, [pathname]);
-
-    // 로그아웃 핸들러
-    const handleLogout = () => {
-        localStorage.removeItem('token'); // 로컬 스토리지 토큰 삭제
-        setUsername(null); // 상태 초기화
-        alert('로그아웃 되었습니다.');
-        router.push('/login'); // 로그아웃 후 로그인 페이지로 이동
-    };
-
-    const allItems = getNavGroups(role).flatMap((group) => group.items);
+const allItems = getNavGroups(role).flatMap((group) => group.items);
     
-    // 상세 페이지 진입 시 가장 알맞은 상위 메뉴의 이름을 찾아 헤더에 표시
     const currentItem =
         allItems.find((item) => item.href === pathname) ||
         allItems
@@ -107,29 +79,29 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
 
             {/* 오른쪽 유저 정보 & 인증 버튼 영역 */}
             <div className="flex items-center justify-end gap-4">
-                {username ? (
-                    // 로그인 된 상태의 UI
+                {mounted && isLoggedIn ? (
+                    // 1. 로그인 된 상태의 UI
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-ink max-sm:hidden">{username}님</span>
+                        <span className="text-sm font-medium text-ink max-sm:hidden">{user?.userName}님</span>
                         <div className="size-8 rounded-full bg-primary/20 cursor-pointer transition-transform hover:scale-105" title="내 프로필" />
                         <button 
-                            onClick={handleLogout} 
-                            className="text-xs text-gray-500 hover:text-ink transition-colors ml-2"
+                            onClick={logout} 
+                            className="text-xs text-muted hover:text-ink transition-colors ml-2"
                         >
                             로그아웃
                         </button>
                     </div>
-                ) : (
-                    // 로그인 되지 않은 상태의 UI
+                ) : mounted && !isLoggedIn ? (
+                    // 2. 로그인 되지 않은 상태의 UI
                     <div className="flex items-center gap-3">
-                        <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
+                        <Link href="/login" className="text-sm font-medium text-muted hover:text-primary transition-colors">
                             로그인
                         </Link>
                         <Link href="/signup" className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
                             회원가입
                         </Link>
                     </div>
-                )}
+                ) : null}
             </div>
         </header>
     );
