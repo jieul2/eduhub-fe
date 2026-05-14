@@ -1,23 +1,7 @@
 "use client";
 
+import type { Payment } from "../../../../types/payment.types";
 
-
-// users 임시 데이터, 백엔드 API 연동 시 제거 예정
-interface users {
-  username: string;
-  role: string;
-  status: string;
-  gender: string;
-  birthDate: string;
-  phone: string;
-  email: string;
-}
-
-interface Payment {
-    user: users;
-    amount: number;
-    status: string;
-}
 const PaymentsTable = ({ payments }: { payments: Payment[] }) => {
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_-10px_rgba(0,55,72,0.08)] overflow-hidden">
@@ -32,13 +16,13 @@ const PaymentsTable = ({ payments }: { payments: Payment[] }) => {
                 />
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                성명
+                학생 이름
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                금액
+                결제 금액
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                상태
+                결제 상태
               </th>
             </tr>
           </thead>
@@ -51,16 +35,18 @@ const PaymentsTable = ({ payments }: { payments: Payment[] }) => {
                     type="checkbox"
                   />
                 </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{payment.user.username}</td>
+                <td className="px-6 py-4 font-medium text-slate-900">{payment.user?.username ?? "N/A"}</td>
                 <td className="px-6 py-4 text-slate-600">{payment.amount}</td>
-                <td className="px-6 py-4 text-slate-600">{payment.status}</td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${payment.status === "paid" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                    {payment.status === "paid" ? "결제 완료" : "미결제"}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {/* Pagination 백엔드 구현 및 프론트엔드 연동 필요 (하드코딩) */}
-      
     </div>
   );
 };

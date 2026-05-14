@@ -1,12 +1,12 @@
 "use client";
 
-import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
+
+import { Info, UserPlus, Search, Download, ListFilter, Users, BookOpen, UserMinus } from "lucide-react";
 import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
 import { useStore } from "../../../store";
-import { ChevronRight, ChevronLeft } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
 import StudentRegistrationModal from "./component/StudentRegistrationModal";
 
@@ -16,34 +16,44 @@ const Students = () => {
   const { students, isLoading, error, pagination, fetchStudents } = useStore();
   const [isOpen, setIsOpen] = React.useState(false);
 
-  useEffect(() => {
+  // 통계 계산 (예시)
+  const totalStudents = pagination.total || 0;
+  const activeStudents = Array.isArray(students) ? students.filter((s) => s.status === "active").length : 0;
+  const inactiveStudents = totalStudents - activeStudents;
+
+  React.useEffect(() => {
     fetchStudents({ page: 1, limit: itemsPerPage });
   }, [fetchStudents, itemsPerPage]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     setItemsPerPage(itemsPerPage);
   }, [itemsPerPage]);
 
+  // 오늘 날짜
+  const todayStr = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date());
+
   return (
-    <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
-            학생조회 (Table View)
+    <div className="flex flex-col gap-10 pb-12 max-w-400 mx-auto w-full p-8">
+      {/* 헤더 */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-primary">{todayStr}</span>
+          <h1 className="text-3xl font-bold text-ink md:text-4xl tracking-tight">
+            학생 관리
           </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Manage and monitor all registered students within the institution.
-          </p>
         </div>
         <div className="flex gap-2">
-          {/* 학생 등록 (유저생성 테스트) */}
           <Button size="lg" variant="primary" onClick={() => setIsOpen(true)}>
             <UserPlus className="w-4 h-4" />
             학생 등록
           </Button>
         </div>
-      </div>
+      </section>
       <StudentRegistrationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
+
+
+
+      {/* 안내 영역 */}
       <section className="bg-surface-container-low p-6 rounded-xl border-l-[3px] border-primary flex items-start gap-4">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Info className="w-6 h-6" />
@@ -51,12 +61,12 @@ const Students = () => {
         <div>
           <h3 className="font-bold text-on-surface-variant text-base">학생 정보 안내</h3>
           <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-            학생 목록에서는 학번, 소속 학과, 학년 등 필수 정보를 한눈에 확인할 수 있습니다. 상세
-            조회를 원하시면 성명을 클릭하십시오. 개인정보 보호를 위해 휴대폰 번호와 이메일은 권한이
-            있는 사용자에게만 노출됩니다.
+            학생 목록에서는 학번, 소속 학과, 학년 등 주요 정보를 한눈에 확인할 수 있습니다. 상세 조회를 원하시면 성명을 클릭하십시오.
           </p>
         </div>
       </section>
+
+      {/* 기존 검색/필터/테이블/페이지네이션 영역 */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg text-sm text-slate-600 font-medium border border-slate-100">
