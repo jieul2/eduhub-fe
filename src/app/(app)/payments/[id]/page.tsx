@@ -166,9 +166,7 @@ const PaymentDetailPage = () => {
         <article className="rounded-[28px] bg-white p-6 shadow-[0_18px_50px_-32px_rgba(15,23,42,0.35)]">
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)] lg:items-start">
             <div className="space-y-4">
-              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 shadow-sm">
-                <CreditCard className="h-8 w-8" />
-              </div>
+
               <div>
                 <p className="text-sm font-medium text-slate-500">결제 프로필</p>
                 <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl">{formatAmount(payment.amount)}원</h2>
