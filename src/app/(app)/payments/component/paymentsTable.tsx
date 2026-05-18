@@ -1,9 +1,50 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Student } from "../../../../features/student/student.types";
+import { Payment } from "../../../../features/payment/payment.types";
 
-const StudentsTable = ({ users }: { users: Student[] }) => {
+const getPaymentStatusLabel = (status: Payment["status"]) => {
+  if (status === "completed") {
+    return "결제완료";
+  }
+
+  if (status === "failed") {
+    return "결제실패";
+  }
+
+  return "미납";
+};
+
+const getPaymentStatusClassName = (status: Payment["status"]) => {
+  if (status === "completed") {
+    return "bg-green-100 text-green-800";
+  }
+
+  if (status === "failed") {
+    return "bg-rose-100 text-rose-700";
+  }
+
+  return "bg-amber-100 text-amber-700";
+};
+
+const formatAmount = (amount: number) => {
+  return new Intl.NumberFormat("ko-KR").format(amount);
+};
+
+const formatDate = (value?: string) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString();
+};
+
+const PaymentsTable = ({ payments }: { payments: Payment[] }) => {
   const router = useRouter();
 
   return (
@@ -19,31 +60,25 @@ const StudentsTable = ({ users }: { users: Student[] }) => {
                 />
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                성명
+                학생명
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                생년월일
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                성별
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                휴대폰번호
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                이메일
+                결제 금액
               </th>
               <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
                 상태
               </th>
+              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
+                생성일
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100/50">
-            {users.map((user, index) => (
+            {payments.map((payment, index) => (
               <tr
-                key={user._id ?? index}
+                key={payment._id ?? index}
                 className="hover:bg-slate-50/50 cursor-pointer"
-                onClick={() => router.push(`/students/${user._id}`)}
+                onClick={() => router.push(`/payments/${payment._id}`)}
               >
                 <td className="px-6 py-4 w-12">
                   <input
@@ -52,29 +87,23 @@ const StudentsTable = ({ users }: { users: Student[] }) => {
                     onClick={(e) => e.stopPropagation()}
                   />
                 </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
-                <td className="px-6 py-4 text-slate-600">
-                  {user.birthDate ? new Date(user.birthDate).toLocaleDateString() : ""}
-                </td>
-                <td className="px-6 py-4 text-slate-600">
-                  {user.gender === "male" ? "남성" : "여성"}
-                </td>
-                <td className="px-6 py-4 text-slate-600">{user.phone}</td>
-                <td className="px-6 py-4 text-slate-600">{user.email}</td>
+                <td className="px-6 py-4 font-medium text-slate-900">{payment.user?.username ?? "학생 정보 없음"}</td>
+                <td className="px-6 py-4 text-slate-600">{formatAmount(payment.amount)}원</td>
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {user.status === "active" ? "활성" : "비활성"}
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusClassName(payment.status)}`}
+                  >
+                    {getPaymentStatusLabel(payment.status)}
                   </span>
                 </td>
+                <td className="px-6 py-4 text-slate-600">{formatDate(payment.createdAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {/* Pagination 백엔드 구현 및 프론트엔드 연동 필요 (하드코딩) */}
-      
     </div>
   );
 };
 
-export default StudentsTable;
+export default PaymentsTable;

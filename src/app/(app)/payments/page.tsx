@@ -1,24 +1,51 @@
 "use client";
 
-import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
-import StudentsTable from "./component/studentsTable";
+import { useEffect, useState } from "react";
+import { CreditCard, Info, Search, Download, ListFilter } from "lucide-react";
+import Pagination from "../../../components/pagination/Pagination";
+import api from "../../../lib/axiosInstance";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
-import React, { useEffect } from "react";
-import { useStore } from "../../../store";
-import Pagination from "../../../components/pagination/Pagination";
+import PaymentsTable from "./component/paymentsTable";
+import { Payment, PaymentListResponse } from "../../../features/payment/payment.types";
 
-const Students = () => {
-  // n개씩 보기 useState구현
-  const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const { students, pagination, fetchStudents } = useStore();
+export default function PaymentsPage() {
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 1,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPayments = async (page: number, limit: number) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const response = await api.get<PaymentListResponse>("/payments", {
+        params: { page, limit },
+      });
+
+      setPayments(Array.isArray(response.data.payments) ? response.data.payments : []);
+      setPagination(response.data.pagination);
+    } catch (fetchError) {
+      setPayments([]);
+      if (fetchError instanceof Error) {
+        setError(fetchError.message);
+      } else {
+        setError("결제 목록을 불러오지 못했습니다.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchStudents({ page: 1, limit: itemsPerPage });
-  }, [fetchStudents, itemsPerPage]);
-
-  useEffect(() => {
-    setItemsPerPage(itemsPerPage);
+    fetchPayments(1, itemsPerPage);
   }, [itemsPerPage]);
 
   return (
@@ -26,32 +53,34 @@ const Students = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
-            학생조회 (Table View)
+            결제조회 (Table View)
           </h1>
           <p className="text-slate-500 text-sm mt-1">
-            Manage and monitor all registered students within the institution.
+            Manage and monitor all student payment records within the institution.
           </p>
         </div>
         <div className="flex gap-2">
           <Button size="lg" variant="primary">
-            <UserPlus className="w-4 h-4" />
-            학생 등록
+            <CreditCard className="w-4 h-4" />
+            결제 등록
           </Button>
         </div>
       </div>
+
       <section className="bg-surface-container-low p-6 rounded-xl border-l-[3px] border-primary flex items-start gap-4">
         <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
           <Info className="w-6 h-6" />
         </div>
         <div>
-          <h3 className="font-bold text-on-surface-variant text-base">학생 정보 안내</h3>
+          <h3 className="font-bold text-on-surface-variant text-base">결제 정보 안내</h3>
           <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-            학생 목록에서는 학번, 소속 학과, 학년 등 필수 정보를 한눈에 확인할 수 있습니다. 상세
-            조회를 원하시면 성명을 클릭하십시오. 개인정보 보호를 위해 휴대폰 번호와 이메일은 권한이
-            있는 사용자에게만 노출됩니다.
+            결제 목록에서는 학생별 결제 금액과 상태를 한눈에 확인할 수 있습니다. 상세 조회를
+            원하시면 학생명을 클릭하십시오. 상태는 미납, 완료, 실패로 구분되어 운영 현황을 빠르게
+            파악할 수 있습니다.
           </p>
         </div>
       </section>
+
       <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg text-sm text-slate-600 font-medium border border-slate-100">
@@ -97,16 +126,17 @@ const Students = () => {
           </Button>
         </div>
       </div>
-      {/* 학생 데이터 테이블 임시 데이터임 (백엔드 API 연동 필요) */}
-      <StudentsTable users={Array.isArray(students) ? students : []} />
-      {/* 페이지네이션 */}
+
+      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {isLoading ? <p className="text-sm text-slate-500">결제 목록을 불러오는 중입니다...</p> : null}
+
+      <PaymentsTable payments={Array.isArray(payments) ? payments : []} />
+
       <Pagination
         page={pagination.page}
         totalPages={pagination.totalPages}
-        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage })}
+        onPageChange={(newPage) => fetchPayments(newPage, itemsPerPage)}
       />
     </div>
   );
-};
-
-export default Students;
+}

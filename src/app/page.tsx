@@ -20,12 +20,6 @@ export default function LandingPage() {
                 >
                     대시보드 시작하기
                 </Link>
-                <Link 
-                    href="/login" 
-                    className="rounded-2xl bg-paper border border-border px-8 py-4 text-lg font-bold text-ink transition-all hover:bg-border/50 hover:scale-105"
-                >
-                    로그인
-                </Link>
             </div>
         </div>
     );
