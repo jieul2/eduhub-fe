@@ -4,22 +4,25 @@ import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
 import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useStore } from "../../../store";
 import Pagination from "../../../components/pagination/Pagination";
 
 const Students = () => {
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const { students, pagination, fetchStudents } = useStore();
 
   useEffect(() => {
-    fetchStudents({ page: 1, limit: itemsPerPage });
-  }, [fetchStudents, itemsPerPage]);
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
-    setItemsPerPage(itemsPerPage);
-  }, [itemsPerPage]);
+    fetchStudents({ page: 1, limit: itemsPerPage, name: debouncedQuery || undefined });
+  }, [fetchStudents, itemsPerPage, debouncedQuery]);
 
   return (
     <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
@@ -86,7 +89,9 @@ const Students = () => {
               color="default"
               readOnly={false}
               leftIcon={<Search />}
-              placeholder="Search"
+              placeholder="학생 이름 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button size="icon" variant="background">
@@ -103,7 +108,7 @@ const Students = () => {
       <Pagination
         page={pagination.page}
         totalPages={pagination.totalPages}
-        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage })}
+        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage, name: debouncedQuery || undefined })}
       />
     </div>
   );

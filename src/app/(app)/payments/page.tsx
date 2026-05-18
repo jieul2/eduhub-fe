@@ -20,14 +20,16 @@ export default function PaymentsPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  const fetchPayments = async (page: number, limit: number) => {
+  const fetchPayments = async (page: number, limit: number, name?: string) => {
     try {
       setIsLoading(true);
       setError(null);
 
       const response = await api.get<PaymentListResponse>("/payments", {
-        params: { page, limit },
+        params: { page, limit, ...(name ? { name } : {}) },
       });
 
       setPayments(Array.isArray(response.data.payments) ? response.data.payments : []);
@@ -45,8 +47,13 @@ export default function PaymentsPage() {
   };
 
   useEffect(() => {
-    fetchPayments(1, itemsPerPage);
-  }, [itemsPerPage]);
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchPayments(1, itemsPerPage, debouncedQuery || undefined);
+  }, [itemsPerPage, debouncedQuery]);
 
   return (
     <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
@@ -115,7 +122,9 @@ export default function PaymentsPage() {
               color="default"
               readOnly={false}
               leftIcon={<Search />}
-              placeholder="Search"
+              placeholder="학생 이름 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button size="icon" variant="background">
@@ -135,7 +144,7 @@ export default function PaymentsPage() {
       <Pagination
         page={pagination.page}
         totalPages={pagination.totalPages}
-        onPageChange={(newPage) => fetchPayments(newPage, itemsPerPage)}
+        onPageChange={(newPage) => fetchPayments(newPage, itemsPerPage, debouncedQuery || undefined)}
       />
     </div>
   );
