@@ -5,6 +5,7 @@ import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useStore } from "../../../store";
 import Pagination from "../../../components/pagination/Pagination";
 
@@ -14,6 +15,7 @@ const Students = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const { students, pagination, fetchStudents } = useStore();
+  const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
@@ -36,7 +38,7 @@ const Students = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button size="lg" variant="primary">
+          <Button size="lg" variant="primary" onClick={() => router.push("/students/new")}>
             <UserPlus className="w-4 h-4" />
             학생 등록
           </Button>

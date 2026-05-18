@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { CreditCard, Info, Search, Download, ListFilter } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
 import api from "../../../lib/axiosInstance";
@@ -10,6 +11,7 @@ import PaymentsTable from "./component/paymentsTable";
 import { Payment, PaymentListResponse } from "../../../features/payment/payment.types";
 
 export default function PaymentsPage() {
+  const router = useRouter();
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [pagination, setPagination] = useState({
@@ -67,7 +69,7 @@ export default function PaymentsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button size="lg" variant="primary">
+          <Button size="lg" variant="primary" onClick={() => router.push("/payments/new")}>
             <CreditCard className="w-4 h-4" />
             결제 등록
           </Button>
