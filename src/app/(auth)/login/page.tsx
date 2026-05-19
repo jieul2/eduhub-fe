@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { SigninRequest } from '@/types/auth.types';
+import { SigninRequest, AuthResponse, ApiError } from '@/types/auth.types';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/authStore';
 import Button from '@/components/ui/Button/Button'; 
@@ -15,7 +15,6 @@ export default function LoginPage() {
 
   const [formData, setFormData] = useState<SigninRequest>({ email: '', password: '' });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  
   const [isLoading, setIsLoading] = useState(false); 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,26 +22,26 @@ export default function LoginPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setIsLoading(true);
 
     try {
-      const response = await authApi.signin(formData);
+      const response: AuthResponse = await authApi.signin(formData);
 
-      const token = response.token|| response.token; 
+      const token = response.token;
 
-      if (token ) {
+      if (token) {
         login(token);
         alert('로그인 성공!');
         router.push('/dashboard'); 
-      } 
-      else {
+      } else {
         setErrorMsg('로그인 응답 데이터가 올바르지 않습니다.');
       }
-    } catch (error: any) {
-      const message = error.response?.data?.message || error.message || '로그인 중 오류가 발생했습니다.';
+    } catch (error) {
+      const err = error as ApiError;
+      const message = err.response?.data?.message || err.message || '로그인 중 오류가 발생했습니다.';
       setErrorMsg(message);
     } finally {
       setIsLoading(false);

@@ -32,3 +32,13 @@ export interface AuthResponse<T = undefined> {
   user?:   T;       // 회원가입 성공 시
   token?:  string;  // 로그인 성공 시
 }
+
+// 에러 응답 타입
+export interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}

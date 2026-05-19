@@ -27,7 +27,7 @@ export default function SignupPage() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleRoleChange = (role: 'student' | 'instructor' | 'admin') => {
+    const handleRoleChange = (role: SignupRequest['role']) => {
         setFormData((prev) => ({ ...prev, role }));
     };
 
@@ -157,7 +157,7 @@ export default function SignupPage() {
                                 <Button
                                     key={option.value}
                                     type="button"
-                                    onClick={() => handleRoleChange(option.value as any)}
+                                    onClick={() => handleRoleChange(option.value as SignupRequest['role'])}
                                     variant="outline"
                                     radius="xl"      
                                     className={`px-1 py-2 text-sm font-semibold transition-all h-auto ${
