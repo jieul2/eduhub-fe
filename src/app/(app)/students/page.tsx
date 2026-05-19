@@ -6,13 +6,12 @@ import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon"
 import Button from "../../../components/ui/Button/Button";
 import React, { useEffect } from "react";
 import { useStore } from "../../../store";
-import { ChevronRight, ChevronLeft } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
 
 const Students = () => {
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const { students, isLoading, error, pagination, fetchStudents } = useStore();
+  const { students, pagination, fetchStudents } = useStore();
 
   useEffect(() => {
     fetchStudents({ page: 1, limit: itemsPerPage });
