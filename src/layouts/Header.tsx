@@ -26,12 +26,20 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const animationFrameId = requestAnimationFrame(() => {
+            setMounted(true);
+        });
+
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
-const allItems = getNavGroups(role).flatMap((group) => group.items);
+
+    const allItems = getNavGroups(role).flatMap((group) => group.items);
     
     const currentItem =
         allItems.find((item) => item.href === pathname) ||
