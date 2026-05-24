@@ -1,18 +1,11 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { Student } from "../../../../features/student/student.types";
 
+const StudentsTable = ({ users }: { users: Student[] }) => {
+  const router = useRouter();
 
-// users 임시 데이터, 백엔드 API 연동 시 제거 예정
-interface users {
-  username: string;
-  role: string;
-  status: string;
-  gender: string;
-  birthDate: string;
-  phone: string;
-  email: string;
-}
-const StudentsTable = ({ users }: { users: users[] }) => {
   return (
     <div className="bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_-10px_rgba(0,55,72,0.08)] overflow-hidden">
       <div className="overflow-x-auto">
@@ -47,15 +40,22 @@ const StudentsTable = ({ users }: { users: users[] }) => {
           </thead>
           <tbody className="divide-y divide-slate-100/50">
             {users.map((user, index) => (
-              <tr key={index} className="hover:bg-slate-50/50 cursor-pointer">
+              <tr
+                key={user._id ?? index}
+                className="hover:bg-slate-50/50 cursor-pointer"
+                onClick={() => router.push(`/students/${user._id}`)}
+              >
                 <td className="px-6 py-4 w-12">
                   <input
                     className="rounded border-slate-300 text-primary focus:ring-primary"
                     type="checkbox"
+                    onClick={(e) => e.stopPropagation()}
                   />
                 </td>
                 <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
-                <td className="px-6 py-4 text-slate-600">{user.birthDate? new Date(user.birthDate).toLocaleDateString() : ""}</td>
+                <td className="px-6 py-4 text-slate-600">
+                  {user.birthDate ? new Date(user.birthDate).toLocaleDateString() : ""}
+                </td>
                 <td className="px-6 py-4 text-slate-600">
                   {user.gender === "male" ? "남성" : "여성"}
                 </td>

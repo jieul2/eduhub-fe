@@ -1,11 +1,12 @@
 "use client";
 
 
-import { Info, UserPlus, Search, Download, ListFilter, Users, BookOpen, UserMinus } from "lucide-react";
+import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
 import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useStore } from "../../../store";
 import Pagination from "../../../components/pagination/Pagination";
 import StudentRegistrationModal from "./component/StudentRegistrationModal";
@@ -13,21 +14,20 @@ import StudentRegistrationModal from "./component/StudentRegistrationModal";
 const Students = () => {
   // n개씩 보기 useState구현
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
-  const { students, isLoading, error, pagination, fetchStudents } = useStore();
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const { students, pagination, fetchStudents } = useStore();
+  const router = useRouter();
 
-  // 통계 계산 (예시)
-  const totalStudents = pagination.total || 0;
-  const activeStudents = Array.isArray(students) ? students.filter((s) => s.status === "active").length : 0;
-  const inactiveStudents = totalStudents - activeStudents;
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  React.useEffect(() => {
-    fetchStudents({ page: 1, limit: itemsPerPage });
-  }, [fetchStudents, itemsPerPage]);
-
-  React.useEffect(() => {
-    setItemsPerPage(itemsPerPage);
-  }, [itemsPerPage]);
+  useEffect(() => {
+    fetchStudents({ page: 1, limit: itemsPerPage, name: debouncedQuery || undefined });
+  }, [fetchStudents, itemsPerPage, debouncedQuery]);
 
   // 오늘 날짜
   const todayStr = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' }).format(new Date());
@@ -43,7 +43,7 @@ const Students = () => {
           </h1>
         </div>
         <div className="flex gap-2">
-          <Button size="lg" variant="primary" onClick={() => setIsOpen(true)}>
+          <Button size="lg" variant="primary" onClick={() => router.push("/students/new")}>
             <UserPlus className="w-4 h-4" />
             학생 등록
           </Button>
@@ -101,7 +101,9 @@ const Students = () => {
               color="default"
               readOnly={false}
               leftIcon={<Search />}
-              placeholder="Search"
+              placeholder="학생 이름 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Button size="icon" variant="background">
@@ -118,7 +120,7 @@ const Students = () => {
       <Pagination
         page={pagination.page}
         totalPages={pagination.totalPages}
-        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage })}
+        onPageChange={(newPage) => fetchStudents({ page: newPage, limit: itemsPerPage, name: debouncedQuery || undefined })}
       />
     </div>
   );
