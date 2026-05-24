@@ -1,7 +1,7 @@
 "use client";
 
 
-import { Info, UserPlus, Search, Download, ListFilter, Users, BookOpen, UserMinus } from "lucide-react";
+import { Info, UserPlus, Search, Download, ListFilter } from "lucide-react";
 import StudentsTable from "./component/studentsTable";
 import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
 import Button from "../../../components/ui/Button/Button";
@@ -16,6 +16,7 @@ const Students = () => {
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
   const { students, pagination, fetchStudents } = useStore();
   const router = useRouter();
 
