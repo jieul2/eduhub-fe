@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { buttonRadius, buttonSizes, buttonVariants } from './Button.tokens';
 import type { ButtonProps } from './Button.types';
+import { Spinner } from '../Spinner/Spinner';
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 	(
@@ -13,6 +14,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			className,
 			children,
 			disabled,
+			isLoading,
 			...props
 		},
 		ref,
@@ -23,7 +25,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 		return (
 			<button
 				ref={ref}
-				disabled={disabled}
+				disabled={disabled || isLoading}
 				className={cn(
 					'inline-flex items-center justify-center gap-2 transition-colors duration-200 font-medium',
 					buttonSizes[size],
@@ -34,7 +36,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 				)}
 				{...props}
 			>
-				{children}
+				{isLoading ? (
+					<>
+						<Spinner size="sm" className="text-current" />
+						<span>처리중...</span>
+					</>
+				) : (
+					children
+				)}
 			</button>
 		);
 	},

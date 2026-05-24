@@ -29,7 +29,7 @@ const createStudentSlice: StateCreator<
   [["zustand/devtools", never]],
   [],
   StudentSlice
-> = (set, get) => ({
+> = (set) => ({
   students: [],
   pagination: {
     page: 1,

@@ -7,6 +7,7 @@ import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getNavGroups } from './Sidebar';
 import { UserRole } from './Layout.types';
+import { useAuthStore } from '@/store/authStore';
 
 interface HeaderProps {
     isMobileMenuOpen: boolean;
@@ -19,15 +20,27 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
     const [isScrolled, setIsScrolled] = useState(false);
     const pathname = usePathname();
 
+    const { user, isLoggedIn, logout } = useAuthStore();
+    
+    // Next.js SSR Hydration 에러 방지용 (새로고침 시 깜빡임 방지)
+    const [mounted, setMounted] = useState(false);
+
     useEffect(() => {
+        const animationFrameId = requestAnimationFrame(() => {
+            setMounted(true);
+        });
+
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, []);
 
     const allItems = getNavGroups(role).flatMap((group) => group.items);
     
-    // 상세 페이지 진입 시 가장 알맞은 상위 메뉴의 이름을 찾아 헤더에 표시
     const currentItem =
         allItems.find((item) => item.href === pathname) ||
         allItems
@@ -54,20 +67,16 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
                     className="flex size-9 items-center justify-center rounded-md text-ink hover:bg-paper focus:outline-none"
                     aria-label="메뉴 토글"
                 >
-                    {/* 모바일 아이콘 전환 */}
                     {isMobileMenuOpen ? <X className="size-5 md:hidden" /> : <Menu className="size-5 md:hidden" />}
-                    {/* PC 아이콘 (항상 Menu) */}
                     <Menu className="size-5 hidden md:block" />
                 </button>
-
                 <h1 className="flex items-center text-lg font-bold text-ink whitespace-nowrap">
-                    
                     <Link
                         href="/"
                         className={cn(
                             "text-primary transition-opacity hover:opacity-80 pr-3 mr-3 border-r-2 border-border",
-                            isMobileMenuOpen ? "max-md:hidden" : "max-md:block", // 모바일에선 메뉴 열리면 숨김
-                            isDesktopMenuOpen ? "md:hidden" : "md:block" // PC에선 메뉴 열리면 숨김
+                            isMobileMenuOpen ? "max-md:hidden" : "max-md:block",
+                            isDesktopMenuOpen ? "md:hidden" : "md:block"
                         )}
                     >
                         EduHub
@@ -76,8 +85,31 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
                 </h1>
             </div>
 
-            <div className="flex items-center justify-end">
-                <div className="size-8 rounded-full bg-primary/20 cursor-pointer transition-transform hover:scale-105" title="내 프로필" />
+            {/* 오른쪽 유저 정보 & 인증 버튼 영역 */}
+            <div className="flex items-center justify-end gap-4">
+                {mounted && isLoggedIn ? (
+                    // 1. 로그인 된 상태의 UI
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-ink max-sm:hidden">{user?.userName}님</span>
+                        <div className="size-8 rounded-full bg-primary/20 cursor-pointer transition-transform hover:scale-105" title="내 프로필" />
+                        <button 
+                            onClick={logout} 
+                            className="text-xs text-muted hover:text-ink transition-colors ml-2"
+                        >
+                            로그아웃
+                        </button>
+                    </div>
+                ) : mounted && !isLoggedIn ? (
+                    // 2. 로그인 되지 않은 상태의 UI
+                    <div className="flex items-center gap-3">
+                        <Link href="/login" className="text-sm font-medium text-muted hover:text-primary transition-colors">
+                            로그인
+                        </Link>
+                        <Link href="/signup" className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90">
+                            회원가입
+                        </Link>
+                    </div>
+                ) : null}
             </div>
         </header>
     );
