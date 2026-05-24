@@ -11,6 +11,7 @@
   --color-border: #e2e8f0;
   --color-accent: #fbbf24;
   --color-accent-2: #38bdf8;
+  --color-danger: #ef4444;
 }
 
 @layer base {

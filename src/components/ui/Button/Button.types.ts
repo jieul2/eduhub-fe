@@ -6,4 +6,5 @@ export type ButtonProps = {
 	variant?: ButtonVariant;
 	radius?: ButtonRadius;
 	isFullWidth?: boolean;
+	isLoading?: boolean;
 } & ComponentProps<'button'>;

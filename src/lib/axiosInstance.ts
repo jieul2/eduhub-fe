@@ -40,7 +40,13 @@ axiosInstance.interceptors.response.use(
   },
   (error) => {
     // 응답 에러 로깅
-    console.error("❌ [Error] Response", error.response?.status, error.message);
+    console.error("❌ [Error] Response", {
+      status: error.response?.status || "No response",
+      statusText: error.response?.statusText || "No status text",
+      url: error.config?.url || "Unknown URL",
+      data: error.response?.data || "No response data",
+      headers: error.response?.headers || "No headers",
+    });
 
     // 공통 에러 처리: 401(인증 만료/실패) 시 처리
     if (error.response?.status === 401) {
@@ -54,5 +60,13 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+axiosInstance.interceptors.request.use((config) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (token && config.headers) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export default axiosInstance;

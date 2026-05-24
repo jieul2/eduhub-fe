@@ -1,5 +1,5 @@
 import { 
-    Users, BookOpen, Clock, Calendar, AlertCircle, 
+    Users, BookOpen,
     CheckCircle2, CreditCard, ChevronRight, UserMinus 
 } from 'lucide-react';
 import Link from 'next/link';
