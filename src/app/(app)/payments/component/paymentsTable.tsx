@@ -3,102 +3,69 @@
 import { useRouter } from "next/navigation";
 import { Payment } from "../../../../features/payment/payment.types";
 
-const getPaymentStatusLabel = (status: Payment["status"]) => {
-  if (status === "completed") {
-    return "결제완료";
-  }
+type StatusKey = Payment["status"];
 
-  if (status === "failed") {
-    return "결제실패";
-  }
-
-  return "미납";
+const STATUS_CONFIG: Record<StatusKey, { label: string; className: string }> = {
+  completed: { label: "결제완료", className: "bg-emerald-100 text-emerald-700" },
+  failed: { label: "결제실패", className: "bg-red-100 text-red-700" },
+  pending: { label: "미납", className: "bg-amber-100 text-amber-700" },
 };
 
-const getPaymentStatusClassName = (status: Payment["status"]) => {
-  if (status === "completed") {
-    return "bg-green-100 text-green-800";
-  }
-
-  if (status === "failed") {
-    return "bg-rose-100 text-rose-700";
-  }
-
-  return "bg-amber-100 text-amber-700";
-};
-
-const formatAmount = (amount: number) => {
-  return new Intl.NumberFormat("ko-KR").format(amount);
-};
+const formatAmount = (amount: number) =>
+  new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW" }).format(amount);
 
 const formatDate = (value?: string) => {
-  if (!value) {
-    return "";
-  }
-
+  if (!value) return "-";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toLocaleDateString();
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("ko-KR");
 };
 
 const PaymentsTable = ({ payments }: { payments: Payment[] }) => {
   const router = useRouter();
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_-10px_rgba(0,55,72,0.08)] overflow-hidden">
+    <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50/50">
-              <th className="px-6 py-4 w-12">
-                <input
-                  className="rounded border-slate-300 text-primary focus:ring-primary"
-                  type="checkbox"
-                />
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                학생명
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                결제 금액
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                상태
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                생성일
-              </th>
+            <tr className="text-xs text-muted uppercase bg-border/20">
+              <th className="text-left px-5 py-3 font-semibold">학생명</th>
+              <th className="text-left px-5 py-3 font-semibold">결제 금액</th>
+              <th className="text-left px-5 py-3 font-semibold">상태</th>
+              <th className="text-left px-5 py-3 font-semibold hidden sm:table-cell">생성일</th>
+              <th className="text-left px-5 py-3 font-semibold hidden md:table-cell">수정일</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100/50">
-            {payments.map((payment, index) => (
-              <tr
-                key={payment._id ?? index}
-                className="hover:bg-slate-50/50 cursor-pointer"
-                onClick={() => router.push(`/payments/${payment._id}`)}
-              >
-                <td className="px-6 py-4 w-12">
-                  <input
-                    className="rounded border-slate-300 text-primary focus:ring-primary"
-                    type="checkbox"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{payment.user?.username ?? "학생 정보 없음"}</td>
-                <td className="px-6 py-4 text-slate-600">{formatAmount(payment.amount)}원</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusClassName(payment.status)}`}
-                  >
-                    {getPaymentStatusLabel(payment.status)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-slate-600">{formatDate(payment.createdAt)}</td>
-              </tr>
-            ))}
+          <tbody className="divide-y divide-border">
+            {payments.map((payment, index) => {
+              const cfg = STATUS_CONFIG[payment.status] ?? STATUS_CONFIG.pending;
+              return (
+                <tr
+                  key={payment._id ?? index}
+                  className="hover:bg-border/10 cursor-pointer transition-colors group"
+                  onClick={() => router.push(`/payments/${payment._id}`)}
+                >
+                  <td className="px-5 py-3 font-medium text-ink group-hover:text-primary transition-colors">
+                    {payment.user?.username ?? <span className="text-muted italic">학생 정보 없음</span>}
+                  </td>
+                  <td className="px-5 py-3 text-ink font-semibold">
+                    {formatAmount(payment.amount)}
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${cfg.className}`}>
+                      {cfg.label}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-muted text-xs hidden sm:table-cell">
+                    {formatDate(payment.createdAt)}
+                  </td>
+                  <td className="px-5 py-3 text-muted text-xs hidden md:table-cell">
+                    {formatDate(payment.updatedAt)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

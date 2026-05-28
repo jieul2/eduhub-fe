@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Info, Search, Download, ListFilter } from "lucide-react";
+import { CreditCard, Search } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
 import api from "../../../lib/axiosInstance";
-import InputWithIcon from "../../../components/ui/input-with-icon/InputWithIcon";
-import Button from "../../../components/ui/Button/Button";
 import PaymentsTable from "./component/paymentsTable";
 import { Payment, PaymentListResponse } from "../../../features/payment/payment.types";
 
@@ -14,12 +12,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [pagination, setPagination] = useState({
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 1,
-  });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,28 +22,22 @@ export default function PaymentsPage() {
     try {
       setIsLoading(true);
       setError(null);
-
       const response = await api.get<PaymentListResponse>("/payments", {
         params: { page, limit, ...(name ? { name } : {}) },
       });
-
       setPayments(Array.isArray(response.data.payments) ? response.data.payments : []);
       setPagination(response.data.pagination);
     } catch (fetchError) {
       setPayments([]);
-      if (fetchError instanceof Error) {
-        setError(fetchError.message);
-      } else {
-        setError("결제 목록을 불러오지 못했습니다.");
-      }
+      setError(fetchError instanceof Error ? fetchError.message : "결제 목록을 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    return () => clearTimeout(t);
   }, [searchQuery]);
 
   useEffect(() => {
@@ -58,90 +45,80 @@ export default function PaymentsPage() {
   }, [itemsPerPage, debouncedQuery]);
 
   return (
-    <div className="mt-5 p-8 space-y-8 max-w-400 mx-auto w-full">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-extrabold text-blue-900 tracking-tight">
-            결제조회 (Table View)
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Manage and monitor all student payment records within the institution.
-          </p>
+    <div className="flex flex-col gap-8 pb-12 max-w-7xl mx-auto w-full p-6">
+      {/* Header */}
+      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold text-primary uppercase tracking-widest">관리</span>
+          <h1 className="text-3xl font-bold text-ink tracking-tight">결제 관리</h1>
+          <p className="text-sm text-muted">학생별 결제 금액과 상태를 조회하고 관리합니다.</p>
         </div>
-        <div className="flex gap-2">
-          <Button size="lg" variant="primary" onClick={() => router.push("/payments/new")}>
-            <CreditCard className="w-4 h-4" />
-            결제 등록
-          </Button>
-        </div>
-      </div>
-
-      <section className="bg-surface-container-low p-6 rounded-xl border-l-[3px] border-primary flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-          <Info className="w-6 h-6" />
-        </div>
-        <div>
-          <h3 className="font-bold text-on-surface-variant text-base">결제 정보 안내</h3>
-          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-            결제 목록에서는 학생별 결제 금액과 상태를 한눈에 확인할 수 있습니다. 상세 조회를
-            원하시면 학생명을 클릭하십시오. 상태는 미납, 완료, 실패로 구분되어 운영 현황을 빠르게
-            파악할 수 있습니다.
-          </p>
-        </div>
+        <button
+          onClick={() => router.push("/payments/new")}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <CreditCard className="w-4 h-4" />
+          결제 등록
+        </button>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-surface-container-lowest p-4 rounded-xl shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg text-sm text-slate-600 font-medium border border-slate-100">
-            <input
-              className="rounded border-slate-300 text-primary focus:ring-primary"
-              type="checkbox"
-            />
-            <span>전체 선택</span>
-          </div>
-          <div className="text-sm text-slate-500">
-            총 <span className="text-blue-700 font-bold">{pagination.total}</span> 건
-          </div>
-          <div className="h-4 w-px bg-slate-200"></div>
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <select
-              className="bg-transparent border-none focus:ring-0 text-sm font-bold p-0 pr-6"
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            >
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
-              <option>100</option>
-            </select>
-            <span>개씩 보기</span>
-          </div>
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 p-4 bg-paper rounded-xl border border-border">
+        <div className="flex items-center gap-2 text-sm text-muted font-medium shrink-0">
+          <CreditCard className="w-4 h-4" />
+          <span className="text-xs font-medium">
+            총 <span className="text-ink font-bold">{pagination.total}</span>건
+          </span>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <InputWithIcon
-              size="md"
-              color="default"
-              readOnly={false}
-              leftIcon={<Search />}
-              placeholder="학생 이름 검색"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button size="icon" variant="background">
-            <Download className="w-4 h-4" />
-          </Button>
-          <Button size="icon" variant="background">
-            <ListFilter className="w-4 h-4" />
-          </Button>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-2 text-xs text-muted">
+          <span>페이지당</span>
+          <select
+            className="border border-border rounded-md px-2 py-1 text-xs text-ink bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+            value={itemsPerPage}
+            onChange={(e) => setItemsPerPage(Number(e.target.value))}
+          >
+            <option value={10}>10개</option>
+            <option value={25}>25개</option>
+            <option value={50}>50개</option>
+            <option value={100}>100개</option>
+          </select>
+        </div>
+        <div className="ml-auto relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
+          <input
+            className="pl-8 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background w-44"
+            placeholder="학생 이름 검색"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {isLoading ? <p className="text-sm text-slate-500">결제 목록을 불러오는 중입니다...</p> : null}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+      )}
 
-      <PaymentsTable payments={Array.isArray(payments) ? payments : []} />
+      {/* Table */}
+      <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
+          <CreditCard className="w-5 h-5 text-primary" />
+          <span className="font-semibold text-ink text-sm">결제 목록</span>
+          <span className="text-xs font-medium text-muted bg-border/60 px-2.5 py-0.5 rounded-full">
+            총 {pagination.total.toLocaleString()}건
+          </span>
+        </div>
+        {isLoading ? (
+          <div className="py-20 text-center text-muted text-sm">불러오는 중...</div>
+        ) : payments.length === 0 ? (
+          <div className="py-20 text-center">
+            <CreditCard className="w-10 h-10 text-border mx-auto mb-3" />
+            <p className="text-muted text-sm">결제 내역이 없습니다.</p>
+          </div>
+        ) : (
+          <PaymentsTable payments={payments} />
+        )}
+      </div>
 
       <Pagination
         page={pagination.page}
