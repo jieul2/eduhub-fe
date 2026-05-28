@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ScrollText, RefreshCw, Filter, Trash2, ChevronDown } from "lucide-react";
 import api from "@/lib/axiosInstance";
 import { PageHeader } from "@/components/PageHeader/PageHeader";
@@ -11,6 +11,7 @@ import { Dropdown } from "@/components/ui/Dropdown/Dropdown";
 import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table/Table";
 import Button from "@/components/ui/Button/Button";
 import Pagination from "@/components/pagination/Pagination";
+import { cn } from "@/lib/utils";
 
 interface LogEntry {
   _id: string;
@@ -20,7 +21,7 @@ interface LogEntry {
   method: string;
   path: string;
   statusCode: number;
-  ip: string;
+  body?: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -56,6 +57,16 @@ const ROLE_LABELS: Record<string, string> = {
   unknown: "비로그인",
 };
 
+const METHOD_KO: Record<string, string> = {
+  GET: "조회",
+  POST: "생성",
+  PUT: "수정",
+  PATCH: "수정",
+  DELETE: "삭제",
+};
+
+const EXPANDABLE_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 const getStatusColor = (code: number) => {
   if (code >= 200 && code < 300) return "text-emerald-600 font-semibold";
   if (code >= 400 && code < 500) return "text-amber-600 font-semibold";
@@ -63,28 +74,66 @@ const getStatusColor = (code: number) => {
   return "text-muted";
 };
 
-const getActionLabel = (method: string, path: string) => {
+const getActionLabel = (method: string, path: string): string => {
   const p = path.toLowerCase();
+  const m = method.toUpperCase();
+
+  // Auth
   if (p.includes("/auth/signin")) return "로그인";
   if (p.includes("/auth/signup")) return "회원가입";
+  if (p.includes("/auth/signout")) return "로그아웃";
+
+  // Students — specific patterns first
   if (p.includes("/students/link")) return "학부모-학생 연결";
-  if (p.includes("/students") && method === "GET") return "학생 조회";
-  if (p.includes("/payments") && method === "POST") return "결제 등록";
-  if (p.includes("/payments") && method === "GET") return "결제 조회";
-  if (p.includes("/classrooms") && method === "POST") return "강의실 생성";
-  if (p.includes("/classrooms") && method === "PUT") return "강의실 수정";
-  if (p.includes("/classrooms") && method === "DELETE") return "강의실 삭제";
-  if (p.includes("/classrooms") && method === "GET") return "강의실 조회";
-  if (p.includes("/subject") && method === "POST") return "과목 생성";
-  if (p.includes("/subject") && method === "PUT") return "과목 수정";
-  if (p.includes("/subject") && method === "DELETE") return "과목 삭제";
-  if (p.includes("/admin/users") && method === "PUT") return "유저 정보 수정";
-  if (p.includes("/admin/users") && method === "DELETE") return "유저 삭제";
-  if (p.includes("/admin/users") && method === "GET") return "유저 목록 조회";
-  if (p.includes("/calendar") && method === "POST") return "일정 등록";
-  if (p.includes("/calendar") && method === "DELETE") return "일정 삭제";
-  if (p.includes("/user/me") && method === "PUT") return "프로필 수정";
-  return `${method} ${path}`;
+  if (/\/students\/[^/]+$/.test(p) && m === "GET") return "학생 상세 조회";
+  if (/\/students\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "학생 정보 수정";
+  if (/\/students\/[^/]+$/.test(p) && m === "DELETE") return "학생 삭제";
+  if (p.includes("/students") && m === "GET") return "학생 목록 조회";
+  if (p.includes("/students") && m === "POST") return "학생 등록";
+
+  // Payments
+  if (/\/payments\/[^/]+$/.test(p) && m === "GET") return "결제 상세 조회";
+  if (/\/payments\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "결제 정보 수정";
+  if (/\/payments\/[^/]+$/.test(p) && m === "DELETE") return "결제 삭제";
+  if (p.includes("/payments") && m === "GET") return "결제 목록 조회";
+  if (p.includes("/payments") && m === "POST") return "결제 등록";
+
+  // Classrooms
+  if (/\/classrooms\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "강의실 수정";
+  if (/\/classrooms\/[^/]+$/.test(p) && m === "DELETE") return "강의실 삭제";
+  if (/\/classrooms\/[^/]+$/.test(p) && m === "GET") return "강의실 상세 조회";
+  if (p.includes("/classrooms") && m === "GET") return "강의실 목록 조회";
+  if (p.includes("/classrooms") && m === "POST") return "강의실 생성";
+
+  // Subjects
+  if (/\/subject\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "과목 수정";
+  if (/\/subject\/[^/]+$/.test(p) && m === "DELETE") return "과목 삭제";
+  if (/\/subject\/[^/]+$/.test(p) && m === "GET") return "과목 상세 조회";
+  if (p.includes("/subject") && m === "GET") return "과목 목록 조회";
+  if (p.includes("/subject") && m === "POST") return "과목 생성";
+
+  // Admin users
+  if (/\/admin\/users\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "유저 정보 수정";
+  if (/\/admin\/users\/[^/]+$/.test(p) && m === "DELETE") return "유저 삭제";
+  if (/\/admin\/users\/[^/]+$/.test(p) && m === "GET") return "유저 상세 조회";
+  if (p.includes("/admin/users") && m === "GET") return "유저 목록 조회";
+
+  // Calendar
+  if (/\/calendar\/[^/]+$/.test(p) && (m === "PUT" || m === "PATCH")) return "일정 수정";
+  if (/\/calendar\/[^/]+$/.test(p) && m === "DELETE") return "일정 삭제";
+  if (/\/calendar\/[^/]+$/.test(p) && m === "GET") return "일정 상세 조회";
+  if (p.includes("/calendar") && m === "GET") return "일정 목록 조회";
+  if (p.includes("/calendar") && m === "POST") return "일정 등록";
+
+  // User profile
+  if (p.includes("/user/me") && m === "GET") return "내 정보 조회";
+  if (p.includes("/user/me") && (m === "PUT" || m === "PATCH")) return "프로필 수정";
+
+  // Logs
+  if (p.includes("/logs") && m === "GET") return "로그 조회";
+  if (p.includes("/logs") && m === "DELETE") return "로그 삭제";
+
+  return METHOD_KO[m] ? `${METHOD_KO[m]} 요청` : "API 요청";
 };
 
 export default function LogsPage() {
@@ -98,6 +147,7 @@ export default function LogsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const [filterMethod, setFilterMethod] = useState<FilterMethod>("ALL");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
@@ -129,6 +179,7 @@ export default function LogsPage() {
         });
         setLogs(res.data.logs);
         setPagination(res.data.pagination);
+        setExpandedRows(new Set());
       } catch (e: any) {
         setError(e?.response?.data?.message ?? "로그를 불러오지 못했습니다.");
       } finally {
@@ -153,6 +204,15 @@ export default function LogsPage() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const formatTime = (iso: string) =>
@@ -324,60 +384,82 @@ export default function LogsPage() {
                 <Th>메서드</Th>
                 <Th>경로</Th>
                 <Th>상태</Th>
-                <Th className="hidden xl:table-cell">IP</Th>
+                <Th className="w-8" />
               </TableHead>
               <TableBody>
-                {logs.map((log) => (
-                  <TableRow
-                    key={log._id}
-                    variant={
-                      log.statusCode >= 500
-                        ? "danger"
-                        : log.statusCode >= 400
-                        ? "warning"
-                        : "default"
-                    }
-                  >
-                    <Td className="text-muted text-xs font-mono whitespace-nowrap">
-                      {formatTime(log.createdAt)}
-                    </Td>
-                    <Td>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-ink">
-                          {log.username === "anonymous" ? (
-                            <span className="text-muted italic">비로그인</span>
-                          ) : (
-                            log.username
-                          )}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
-                        >
-                          {ROLE_LABELS[log.role] ?? log.role}
-                        </span>
-                      </div>
-                    </Td>
-                    <Td className="text-xs text-ink font-medium whitespace-nowrap">
-                      {getActionLabel(log.method, log.path)}
-                    </Td>
-                    <Td>
-                      <span
-                        className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
+                {logs.map((log) => {
+                  const hasBody = log.body && EXPANDABLE_METHODS.has(log.method);
+                  const isExpanded = expandedRows.has(log._id);
+                  return (
+                    <React.Fragment key={log._id}>
+                      <TableRow
+                        variant={
+                          log.statusCode >= 500
+                            ? "danger"
+                            : log.statusCode >= 400
+                            ? "warning"
+                            : "default"
+                        }
+                        onClick={hasBody ? () => toggleExpand(log._id) : undefined}
                       >
-                        {log.method}
-                      </span>
-                    </Td>
-                    <Td className="text-xs text-muted font-mono max-w-50 truncate" title={log.path}>
-                      {log.path}
-                    </Td>
-                    <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
-                      {log.statusCode}
-                    </Td>
-                    <Td className="text-xs text-muted font-mono hidden xl:table-cell">
-                      {log.ip}
-                    </Td>
-                  </TableRow>
-                ))}
+                        <Td className="text-muted text-xs font-mono whitespace-nowrap">
+                          {formatTime(log.createdAt)}
+                        </Td>
+                        <Td>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-ink">
+                              {log.username === "anonymous" ? (
+                                <span className="text-muted italic">비로그인</span>
+                              ) : (
+                                log.username
+                              )}
+                            </span>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
+                            >
+                              {ROLE_LABELS[log.role] ?? log.role}
+                            </span>
+                          </div>
+                        </Td>
+                        <Td className="text-xs text-ink font-medium whitespace-nowrap">
+                          {getActionLabel(log.method, log.path)}
+                        </Td>
+                        <Td>
+                          <span
+                            className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
+                          >
+                            {log.method}
+                          </span>
+                        </Td>
+                        <Td className="text-xs text-muted font-mono max-w-50 truncate" title={log.path}>
+                          {log.path}
+                        </Td>
+                        <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
+                          {log.statusCode}
+                        </Td>
+                        <Td className="w-8 text-center">
+                          {hasBody && (
+                            <ChevronDown
+                              className={cn(
+                                "w-3.5 h-3.5 text-muted transition-transform duration-200",
+                                isExpanded && "rotate-180",
+                              )}
+                            />
+                          )}
+                        </Td>
+                      </TableRow>
+                      {isExpanded && log.body && (
+                        <tr className="bg-slate-50 border-b border-border">
+                          <td colSpan={7} className="px-5 py-3">
+                            <pre className="text-xs font-mono text-ink whitespace-pre-wrap overflow-auto max-h-40 leading-relaxed">
+                              {JSON.stringify(log.body, null, 2)}
+                            </pre>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

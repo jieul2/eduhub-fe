@@ -21,26 +21,21 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
     const pathname = usePathname();
 
     const { user, isLoggedIn, logout } = useAuthStore();
-    
-    // Next.js SSR Hydration 에러 방지용 (새로고침 시 깜빡임 방지)
+
+    // SSR 하이드레이션 불일치 방지: localStorage 기반 상태는 클라이언트에서만 표시
     const [mounted, setMounted] = useState(false);
-
     useEffect(() => {
-        const animationFrameId = requestAnimationFrame(() => {
-            setMounted(true);
-        });
-
+        const id = requestAnimationFrame(() => setMounted(true));
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
-        
         return () => {
-            cancelAnimationFrame(animationFrameId);
+            cancelAnimationFrame(id);
             window.removeEventListener('scroll', handleScroll);
         };
     }, []);
 
     const allItems = getNavGroups(role).flatMap((group) => group.items);
-    
+
     const currentItem =
         allItems.find((item) => item.href === pathname) ||
         allItems
@@ -61,46 +56,43 @@ export const Header = ({ isMobileMenuOpen, isDesktopMenuOpen, toggleSidebar, rol
                         : 'border-transparent bg-background',
             )}
         >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
                 <button
                     onClick={toggleSidebar}
-                    className="flex size-9 items-center justify-center rounded-md text-ink hover:bg-paper focus:outline-none"
+                    className="flex size-9 items-center justify-center rounded-md text-ink hover:bg-paper focus:outline-none shrink-0"
                     aria-label="메뉴 토글"
                 >
                     {isMobileMenuOpen ? <X className="size-5 md:hidden" /> : <Menu className="size-5 md:hidden" />}
                     <Menu className="size-5 hidden md:block" />
                 </button>
-                <h1 className="flex items-center text-lg font-bold text-ink whitespace-nowrap">
+                <h1 className="flex items-center text-lg font-bold text-ink min-w-0">
                     <Link
                         href="/"
                         className={cn(
-                            "text-primary transition-opacity hover:opacity-80 pr-3 mr-3 border-r-2 border-border",
+                            "text-primary transition-opacity hover:opacity-80 pr-3 mr-3 border-r-2 border-border shrink-0",
                             isMobileMenuOpen ? "max-md:hidden" : "max-md:block",
                             isDesktopMenuOpen ? "md:hidden" : "md:block"
                         )}
                     >
                         EduHub
                     </Link>
-                    <span>{pageTitle}</span>
+                    <span className="truncate">{pageTitle}</span>
                 </h1>
             </div>
 
-            {/* 오른쪽 유저 정보 & 인증 버튼 영역 */}
-            <div className="flex items-center justify-end gap-4">
+            <div className="flex items-center justify-end gap-4 shrink-0">
                 {mounted && isLoggedIn ? (
-                    // 1. 로그인 된 상태의 UI
                     <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-ink max-sm:hidden">{user?.userName}님</span>
-                        <div className="size-8 rounded-full bg-primary/20 cursor-pointer transition-transform hover:scale-105" title="내 프로필" />
-                        <button 
-                            onClick={logout} 
+                        <div className="size-8 rounded-full bg-primary/20 cursor-pointer transition-transform hover:scale-105 shrink-0" title="내 프로필" />
+                        <button
+                            onClick={logout}
                             className="text-xs text-muted hover:text-ink transition-colors ml-2"
                         >
                             로그아웃
                         </button>
                     </div>
                 ) : mounted && !isLoggedIn ? (
-                    // 2. 로그인 되지 않은 상태의 UI
                     <div className="flex items-center gap-3">
                         <Link href="/login" className="text-sm font-medium text-muted hover:text-primary transition-colors">
                             로그인

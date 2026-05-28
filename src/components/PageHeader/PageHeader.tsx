@@ -28,12 +28,12 @@ export function PageHeader({
         </Link>
       )}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 min-w-0">
           <span className="text-xs font-semibold text-primary uppercase tracking-widest">{label}</span>
           <h1 className="text-3xl font-bold text-ink tracking-tight">{title}</h1>
           {description && <p className="text-sm text-muted">{description}</p>}
         </div>
-        {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
       </div>
     </section>
   );

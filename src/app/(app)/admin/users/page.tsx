@@ -414,6 +414,7 @@ export default function UsersPage() {
                 <p className="text-muted text-sm">유저가 없습니다.</p>
               </div>
             ) : (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHead>
                   <Th>유저</Th>
@@ -461,7 +462,7 @@ export default function UsersPage() {
                           <div className="flex items-center justify-end gap-1.5">
                             {deleteConfirmId === user._id ? (
                               <div className="flex items-center gap-2">
-                                <span className="text-xs text-danger font-medium">삭제?</span>
+                                <span className="text-xs text-danger font-medium whitespace-nowrap">삭제?</span>
                                 <button
                                   disabled={isDeleting}
                                   onClick={() => handleDelete(user._id)}
@@ -499,6 +500,7 @@ export default function UsersPage() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             )}
           </SectionCard>
 

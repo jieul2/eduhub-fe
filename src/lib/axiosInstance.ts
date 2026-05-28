@@ -1,5 +1,6 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import { logStore } from "./logStore";
+import { useAuthStore } from "@/store/authStore";
 
 // axios config에 커스텀 필드 타입 확장
 declare module "axios" {
@@ -68,8 +69,9 @@ axiosInstance.interceptors.response.use(
         duration,
       });
 
-      if (status === 401) {
+      if (status === 401 && useAuthStore.getState()._hasHydrated) {
         localStorage.removeItem("auth-token");
+        useAuthStore.setState({ user: null, isLoggedIn: false });
       }
     }
 
