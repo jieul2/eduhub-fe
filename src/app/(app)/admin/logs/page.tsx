@@ -180,8 +180,8 @@ export default function LogsPage() {
         setLogs(res.data.logs);
         setPagination(res.data.pagination);
         setExpandedRows(new Set());
-      } catch (e: any) {
-        setError(e?.response?.data?.message ?? "로그를 불러오지 못했습니다.");
+      } catch (e: unknown) {
+        setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "로그를 불러오지 못했습니다.");
       } finally {
         setIsLoading(false);
       }

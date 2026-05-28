@@ -63,11 +63,12 @@ interface TdProps {
   children?: React.ReactNode;
   className?: string;
   colSpan?: number;
+  title?: string;
 }
 
-export function Td({ children, className, colSpan }: TdProps) {
+export function Td({ children, className, colSpan, title }: TdProps) {
   return (
-    <td colSpan={colSpan} className={cn("px-5 py-3", className)}>
+    <td colSpan={colSpan} title={title} className={cn("px-5 py-3", className)}>
       {children}
     </td>
   );
