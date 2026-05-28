@@ -2,11 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CreditCard, Search } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import Pagination from "../../../components/pagination/Pagination";
 import api from "../../../lib/axiosInstance";
 import PaymentsTable from "./component/paymentsTable";
 import { Payment, PaymentListResponse } from "../../../features/payment/payment.types";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { Alert } from "@/components/ui/Alert/Alert";
+import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import Button from "@/components/ui/Button/Button";
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -46,21 +51,21 @@ export default function PaymentsPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12 max-w-7xl mx-auto w-full p-6">
-      {/* Header */}
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest">관리</span>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">결제 관리</h1>
-          <p className="text-sm text-muted">학생별 결제 금액과 상태를 조회하고 관리합니다.</p>
-        </div>
-        <button
-          onClick={() => router.push("/payments/new")}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <CreditCard className="w-4 h-4" />
-          결제 등록
-        </button>
-      </section>
+      <PageHeader
+        label="관리"
+        title="결제 관리"
+        description="학생별 결제 금액과 상태를 조회하고 관리합니다."
+        actions={
+          <Button
+            variant="primary"
+            radius="lg"
+            onClick={() => router.push("/payments/new")}
+          >
+            <CreditCard className="w-4 h-4" />
+            결제 등록
+          </Button>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 bg-paper rounded-xl border border-border">
@@ -84,30 +89,27 @@ export default function PaymentsPage() {
             <option value={100}>100개</option>
           </select>
         </div>
-        <div className="ml-auto relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
-          <input
-            className="pl-8 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background w-44"
-            placeholder="학생 이름 검색"
+        <div className="ml-auto">
+          <SearchInput
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="학생 이름 검색"
           />
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+        <Alert variant="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
       )}
 
       {/* Table */}
-      <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-          <CreditCard className="w-5 h-5 text-primary" />
-          <span className="font-semibold text-ink text-sm">결제 목록</span>
-          <span className="text-xs font-medium text-muted bg-border/60 px-2.5 py-0.5 rounded-full">
-            총 {pagination.total.toLocaleString()}건
-          </span>
-        </div>
+      <SectionCard
+        icon={<CreditCard className="w-5 h-5" />}
+        title="결제 목록"
+        badge={`총 ${pagination.total.toLocaleString()}건`}
+      >
         {isLoading ? (
           <div className="py-20 text-center text-muted text-sm">불러오는 중...</div>
         ) : payments.length === 0 ? (
@@ -118,7 +120,7 @@ export default function PaymentsPage() {
         ) : (
           <PaymentsTable payments={payments} />
         )}
-      </div>
+      </SectionCard>
 
       <Pagination
         page={pagination.page}

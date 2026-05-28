@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserPlus, Search, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useStore } from "../../../store";
 import StudentsTable from "./component/studentsTable";
 import Pagination from "../../../components/pagination/Pagination";
 import StudentRegistrationModal from "./component/StudentRegistrationModal";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import Button from "@/components/ui/Button/Button";
 
 const Students = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -27,21 +31,21 @@ const Students = () => {
 
   return (
     <div className="flex flex-col gap-8 pb-12 max-w-7xl mx-auto w-full p-6">
-      {/* Header */}
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest">관리</span>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">학생 관리</h1>
-          <p className="text-sm text-muted">등록된 학생 목록을 조회하고 상세 정보를 확인합니다.</p>
-        </div>
-        <button
-          onClick={() => router.push("/students/new")}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <UserPlus className="w-4 h-4" />
-          학생 등록
-        </button>
-      </section>
+      <PageHeader
+        label="관리"
+        title="학생 관리"
+        description="등록된 학생 목록을 조회하고 상세 정보를 확인합니다."
+        actions={
+          <Button
+            variant="primary"
+            radius="lg"
+            onClick={() => router.push("/students/new")}
+          >
+            <UserPlus className="w-4 h-4" />
+            학생 등록
+          </Button>
+        }
+      />
 
       <StudentRegistrationModal isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
@@ -67,28 +71,23 @@ const Students = () => {
             <option value={100}>100개</option>
           </select>
         </div>
-        <div className="ml-auto relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
-          <input
-            className="pl-8 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background w-44"
-            placeholder="학생 이름 검색"
+        <div className="ml-auto">
+          <SearchInput
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="학생 이름 검색"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-          <Users className="w-5 h-5 text-primary" />
-          <span className="font-semibold text-ink text-sm">학생 목록</span>
-          <span className="text-xs font-medium text-muted bg-border/60 px-2.5 py-0.5 rounded-full">
-            총 {pagination.total.toLocaleString()}명
-          </span>
-        </div>
+      <SectionCard
+        icon={<Users className="w-5 h-5" />}
+        title="학생 목록"
+        badge={`총 ${pagination.total.toLocaleString()}명`}
+      >
         <StudentsTable users={Array.isArray(students) ? students : []} />
-      </div>
+      </SectionCard>
 
       <Pagination
         page={pagination.page}

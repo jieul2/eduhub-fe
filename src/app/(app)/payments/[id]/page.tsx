@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, ArrowLeft, ArrowRight, CalendarRange, CircleAlert, User, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertTriangle, CalendarRange, CreditCard, User, X } from "lucide-react";
 import api from "../../../../lib/axiosInstance";
 import { Payment, PaymentDetailResponse } from "../../../../features/payment/payment.types";
 import Button from "../../../../components/ui/Button/Button";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { Alert } from "@/components/ui/Alert/Alert";
+import { Badge, BadgeVariant } from "@/components/ui/Badge/Badge";
 
 const formatDate = (value?: string) => {
   if (!value) return "-";
@@ -18,10 +22,10 @@ const formatDate = (value?: string) => {
 const formatAmount = (amount: number) =>
   new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW" }).format(amount);
 
-const STATUS_CONFIG: Record<Payment["status"], { label: string; className: string; dot: string }> = {
-  completed: { label: "결제완료", className: "bg-emerald-100 text-emerald-700", dot: "bg-emerald-500" },
-  failed: { label: "결제실패", className: "bg-red-100 text-red-700", dot: "bg-red-500" },
-  pending: { label: "미납", className: "bg-amber-100 text-amber-700", dot: "bg-amber-400" },
+const STATUS_CONFIG: Record<Payment["status"], { label: string; badgeVariant: BadgeVariant; dot: string }> = {
+  completed: { label: "결제완료", badgeVariant: "success", dot: "bg-emerald-500" },
+  failed: { label: "결제실패", badgeVariant: "danger", dot: "bg-red-500" },
+  pending: { label: "미납", badgeVariant: "warning", dot: "bg-amber-400" },
 };
 
 const PaymentDetailPage = () => {
@@ -103,21 +107,15 @@ const PaymentDetailPage = () => {
 
   if (error || !payment) {
     return (
-      <div className="mx-auto max-w-3xl p-6">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
-            <CircleAlert className="h-6 w-6" />
-          </div>
-          <h1 className="mt-4 text-xl font-bold text-ink">결제 정보를 불러오지 못했습니다</h1>
-          <p className="mt-2 text-sm text-muted">{error ?? "잠시 후 다시 시도해 주세요."}</p>
-          <Link
-            href="/payments"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            결제 목록으로 돌아가기
-          </Link>
-        </div>
+      <div className="mx-auto max-w-3xl p-6 flex flex-col gap-4">
+        <Alert variant="error">{error ?? "잠시 후 다시 시도해 주세요."}</Alert>
+        <Link
+          href="/payments"
+          className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          결제 목록으로 돌아가기
+        </Link>
       </div>
     );
   }
@@ -135,75 +133,69 @@ const PaymentDetailPage = () => {
   return (
     <>
       <div className="flex flex-col gap-6 pb-12 max-w-7xl mx-auto w-full p-6">
-        {/* Header */}
-        <section className="flex flex-col gap-3 border-b border-border pb-6">
-          <Link href="/payments" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink transition-colors w-fit">
-            <ArrowLeft className="h-4 w-4" />
-            결제 목록으로 돌아가기
-          </Link>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-primary uppercase tracking-widest">결제 상세</span>
-              <h1 className="text-3xl font-bold text-ink tracking-tight">결제 상세</h1>
-              <p className="text-sm text-muted">결제 건의 금액, 상태, 생성/수정 이력을 한 화면에서 확인합니다.</p>
-            </div>
-            <button
-              type="button"
-              onClick={openStatusModal}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-ink text-sm font-medium hover:bg-border/40 transition-colors self-start"
-            >
+        <PageHeader
+          label="결제 상세"
+          title="결제 상세"
+          description="결제 건의 금액, 상태, 생성/수정 이력을 한 화면에서 확인합니다."
+          backLink={{ href: "/payments", label: "결제 목록으로 돌아가기" }}
+          actions={
+            <Button variant="outline" radius="lg" onClick={openStatusModal}>
               상태 변경
-            </button>
-          </div>
-        </section>
+            </Button>
+          }
+        />
 
         {/* Main + Summary */}
         <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-          <article className="rounded-xl border border-border bg-paper p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${cfg.className}`}>
-                <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
+          <SectionCard
+            icon={<CreditCard className="h-5 w-5" />}
+            headerRight={
+              <Badge variant={cfg.badgeVariant} rounded="full">
+                <span className={`h-2 w-2 rounded-full ${cfg.dot} mr-1.5`} />
                 {cfg.label}
-              </span>
-            </div>
-            <p className="text-xs text-muted mb-1">결제 금액</p>
-            <p className="text-3xl font-bold text-ink mb-1">{formatAmount(payment.amount)}</p>
-            <p className="text-xs text-muted font-mono mb-6">ID: {payment._id}</p>
+              </Badge>
+            }
+          >
+            <div className="p-6">
+              <p className="text-xs text-muted mb-1">결제 금액</p>
+              <p className="text-3xl font-bold text-ink mb-1">{formatAmount(payment.amount)}</p>
+              <p className="text-xs text-muted font-mono mb-6">ID: {payment._id}</p>
 
-            <div className="grid gap-3 sm:grid-cols-2 mb-6">
-              <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm">
-                <User className="h-4 w-4 text-primary" />
-                {hasStudentId ? (
-                  <Link href={`/students/${payment.studentId}`} className="text-muted hover:text-primary hover:underline transition-colors">
-                    {studentName}
-                  </Link>
-                ) : (
-                  <span className="text-muted">{studentName}</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm">
-                <CalendarRange className="h-4 w-4 text-primary" />
-                <span className="text-muted">생성일 {formatDate(payment.createdAt)}</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm sm:col-span-2">
-                <CalendarRange className="h-4 w-4 text-primary" />
-                <span className="text-muted">수정일 {formatDate(payment.updatedAt)}</span>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                { label: "결제 상태", value: cfg.label },
-                { label: "결제 금액", value: formatAmount(payment.amount) },
-                { label: "학생명", value: studentName },
-              ].map((item) => (
-                <div key={item.label} className="rounded-xl bg-border/20 p-4">
-                  <p className="text-xs uppercase tracking-wider text-muted">{item.label}</p>
-                  <p className="mt-2 text-base font-semibold text-ink">{item.value}</p>
+              <div className="grid gap-3 sm:grid-cols-2 mb-6">
+                <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm">
+                  <User className="h-4 w-4 text-primary" />
+                  {hasStudentId ? (
+                    <Link href={`/students/${payment.studentId}`} className="text-muted hover:text-primary hover:underline transition-colors">
+                      {studentName}
+                    </Link>
+                  ) : (
+                    <span className="text-muted">{studentName}</span>
+                  )}
                 </div>
-              ))}
+                <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm">
+                  <CalendarRange className="h-4 w-4 text-primary" />
+                  <span className="text-muted">생성일 {formatDate(payment.createdAt)}</span>
+                </div>
+                <div className="flex items-center gap-3 rounded-xl bg-border/20 px-4 py-3 text-sm sm:col-span-2">
+                  <CalendarRange className="h-4 w-4 text-primary" />
+                  <span className="text-muted">수정일 {formatDate(payment.updatedAt)}</span>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "결제 상태", value: cfg.label },
+                  { label: "결제 금액", value: formatAmount(payment.amount) },
+                  { label: "학생명", value: studentName },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl bg-border/20 p-4">
+                    <p className="text-xs uppercase tracking-wider text-muted">{item.label}</p>
+                    <p className="mt-2 text-base font-semibold text-ink">{item.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </article>
+          </SectionCard>
 
           <aside className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
             {summaryItems.map((item) => (
@@ -221,7 +213,7 @@ const PaymentDetailPage = () => {
       {isStatusModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={closeStatusModal} />
-          <div className="relative z-10 w-[520px] overflow-hidden rounded-2xl bg-background shadow-2xl">
+          <div className="relative z-10 w-130 overflow-hidden rounded-2xl bg-background shadow-2xl">
             <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-paper">

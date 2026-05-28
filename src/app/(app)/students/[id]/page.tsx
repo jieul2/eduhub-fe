@@ -8,7 +8,6 @@ import {
   BookOpen,
   CalendarCheck2,
   CalendarRange,
-  CircleAlert,
   CreditCard,
   Mail,
   MapPin,
@@ -26,6 +25,10 @@ import {
   StudentParentLink,
   StudentPayment,
 } from "../../../../features/student/student.types";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { Alert } from "@/components/ui/Alert/Alert";
+import { Badge } from "@/components/ui/Badge/Badge";
 
 const formatDate = (value?: string) => {
   if (!value) return "-";
@@ -56,43 +59,24 @@ const getConsultationTypeLabel = (type: StudentCounsel["consultation_type"]) =>
 
 const getPaymentStatusConfig = (status: StudentPayment["status"]) => {
   const map = {
-    completed: { label: "결제 완료", badge: "bg-emerald-100 text-emerald-700" },
-    pending: { label: "결제 대기", badge: "bg-amber-100 text-amber-700" },
-    failed: { label: "결제 실패", badge: "bg-red-100 text-red-700" },
+    completed: { label: "결제 완료", badgeVariant: "success" as const },
+    pending: { label: "결제 대기", badgeVariant: "warning" as const },
+    failed: { label: "결제 실패", badgeVariant: "danger" as const },
   };
   return map[status] ?? map.pending;
 };
 
 const getAttendanceStatusConfig = (status: StudentAttendance["status"]) => {
   const map = {
-    present: { label: "출석", badge: "bg-emerald-100 text-emerald-700" },
-    absent: { label: "결석", badge: "bg-red-100 text-red-700" },
-    late: { label: "지각", badge: "bg-amber-100 text-amber-700" },
+    present: { label: "출석", badgeVariant: "success" as const },
+    absent: { label: "결석", badgeVariant: "danger" as const },
+    late: { label: "지각", badgeVariant: "warning" as const },
   };
   return map[status] ?? map.present;
 };
 
 const formatAmount = (amount: number) =>
   new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW" }).format(amount);
-
-const SectionCard = ({ icon, iconBg, title, subtitle, children }: {
-  icon: React.ReactNode;
-  iconBg: string;
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}) => (
-  <article className="rounded-xl border border-border bg-paper p-6 shadow-sm">
-    <div className="flex items-center gap-3 mb-6">
-      <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconBg}`}>{icon}</div>
-      <div>
-        <h2 className="text-base font-bold text-ink">{title}</h2>
-        <p className="text-xs text-muted">{subtitle}</p>
-      </div>
-    </div>
-    {children}
-  </article>
-);
 
 const EmptyState = ({ message }: { message: string }) => (
   <p className="rounded-xl bg-border/20 p-5 text-sm text-muted text-center">{message}</p>
@@ -160,21 +144,15 @@ const StudentDetailPage = () => {
 
   if (error || !data) {
     return (
-      <div className="mx-auto max-w-3xl p-6">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-8 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
-            <CircleAlert className="h-6 w-6" />
-          </div>
-          <h1 className="mt-4 text-xl font-bold text-ink">학생 정보를 불러오지 못했습니다</h1>
-          <p className="mt-2 text-sm text-muted">{error ?? "잠시 후 다시 시도해 주세요."}</p>
-          <Link
-            href="/students"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            학생 목록으로 돌아가기
-          </Link>
-        </div>
+      <div className="mx-auto max-w-3xl p-6 flex flex-col gap-4">
+        <Alert variant="error">{error ?? "잠시 후 다시 시도해 주세요."}</Alert>
+        <Link
+          href="/students"
+          className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink transition-colors w-fit"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          학생 목록으로 돌아가기
+        </Link>
       </div>
     );
   }
@@ -206,23 +184,20 @@ const StudentDetailPage = () => {
 
   return (
     <div className="flex flex-col gap-6 pb-12 max-w-7xl mx-auto w-full p-6">
-      {/* Header */}
-      <section className="flex flex-col gap-3 border-b border-border pb-6">
-        <Link href="/students" className="inline-flex items-center gap-2 text-sm text-muted hover:text-ink transition-colors w-fit">
-          <ArrowLeft className="h-4 w-4" />
-          학생 목록으로 돌아가기
-        </Link>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-primary uppercase tracking-widest">학생 상세</span>
-            <h1 className="text-3xl font-bold text-ink tracking-tight">{student.username} 학생</h1>
-            <p className="text-sm text-muted">기본 정보와 성적, 수업, 상담, 결제, 출석 현황을 확인합니다.</p>
-          </div>
-          <span className={`self-start px-3 py-1 rounded-full text-xs font-semibold ${student.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+      <PageHeader
+        label="학생 상세"
+        title={`${student.username} 학생`}
+        description="기본 정보와 성적, 수업, 상담, 결제, 출석 현황을 확인합니다."
+        backLink={{ href: "/students", label: "학생 목록으로 돌아가기" }}
+        actions={
+          <Badge
+            variant={student.status === "active" ? "success" : "neutral"}
+            rounded="full"
+          >
             {getStatusLabel(student.status)}
-          </span>
-        </div>
-      </section>
+          </Badge>
+        }
+      />
 
       {/* Profile + Summary */}
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -268,8 +243,12 @@ const StudentDetailPage = () => {
 
       {/* Detail Cards */}
       <section className="grid gap-6 xl:grid-cols-2">
-        <SectionCard icon={<BookOpen className="h-5 w-5 text-blue-700" />} iconBg="bg-blue-100" title="성적 현황" subtitle="학생별 과목 성적 기록입니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<BookOpen className="h-5 w-5 text-blue-700" />}
+          iconBg="bg-blue-100"
+          title="성적 현황"
+        >
+          <div className="p-6 space-y-3">
             {achievements.length ? achievements.map((a: StudentAchievement) => (
               <div key={a._id} className="rounded-xl border border-border bg-border/10 p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -284,13 +263,17 @@ const StudentDetailPage = () => {
           </div>
         </SectionCard>
 
-        <SectionCard icon={<CalendarRange className="h-5 w-5 text-emerald-700" />} iconBg="bg-emerald-100" title="수강 수업" subtitle="학생이 등록된 수업 목록입니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<CalendarRange className="h-5 w-5 text-emerald-700" />}
+          iconBg="bg-emerald-100"
+          title="수강 수업"
+        >
+          <div className="p-6 space-y-3">
             {classes.length ? classes.map((c: StudentClassItem) => (
               <div key={c._id} className="rounded-xl border border-border bg-border/10 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-semibold text-ink text-sm">{c.subjectId?.title || "수업명 정보 없음"}</p>
-                  <span className="rounded px-2 py-0.5 text-xs font-semibold bg-emerald-100 text-emerald-700">{getStatusLabel(c.status)}</span>
+                  <Badge variant="success">{getStatusLabel(c.status)}</Badge>
                 </div>
                 <p className="mt-1 text-xs text-muted">담당 강사 {c.instructorId?.username || "미정"}</p>
                 {c.classroomId?.classroomName && (
@@ -304,8 +287,12 @@ const StudentDetailPage = () => {
           </div>
         </SectionCard>
 
-        <SectionCard icon={<CircleAlert className="h-5 w-5 text-amber-700" />} iconBg="bg-amber-100" title="상담 이력" subtitle="최근 상담 순서로 정렬되어 있습니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<Users className="h-5 w-5 text-amber-700" />}
+          iconBg="bg-amber-100"
+          title="상담 이력"
+        >
+          <div className="p-6 space-y-3">
             {counsels.length ? counsels.map((c: StudentCounsel) => (
               <div key={c._id} className="rounded-xl border border-border bg-border/10 p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -320,8 +307,12 @@ const StudentDetailPage = () => {
           </div>
         </SectionCard>
 
-        <SectionCard icon={<CreditCard className="h-5 w-5 text-violet-700" />} iconBg="bg-violet-100" title="결제 내역" subtitle="항목을 클릭하면 상세를 확인합니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<CreditCard className="h-5 w-5 text-violet-700" />}
+          iconBg="bg-violet-100"
+          title="결제 내역"
+        >
+          <div className="p-6 space-y-3">
             {payments.length ? payments.map((p: StudentPayment) => {
               const cfg = getPaymentStatusConfig(p.status);
               return (
@@ -333,7 +324,7 @@ const StudentDetailPage = () => {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-ink text-sm">{formatAmount(p.amount)}</p>
-                    <span className={`rounded px-2 py-0.5 text-xs font-semibold ${cfg.badge}`}>{cfg.label}</span>
+                    <Badge variant={cfg.badgeVariant}>{cfg.label}</Badge>
                   </div>
                   <p className="mt-1 text-xs text-muted">{formatDate(p.createdAt)}</p>
                 </button>
@@ -344,15 +335,19 @@ const StudentDetailPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <SectionCard icon={<CalendarCheck2 className="h-5 w-5 text-sky-700" />} iconBg="bg-sky-100" title="출석 현황" subtitle="최근 출석 이력입니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<CalendarCheck2 className="h-5 w-5 text-sky-700" />}
+          iconBg="bg-sky-100"
+          title="출석 현황"
+        >
+          <div className="p-6 space-y-3">
             {attendances.length ? attendances.map((a: StudentAttendance) => {
               const cfg = getAttendanceStatusConfig(a.status);
               return (
                 <div key={a._id} className="rounded-xl border border-border bg-border/10 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-semibold text-ink text-sm">{formatDate(a.date)}</p>
-                    <span className={`rounded px-2 py-0.5 text-xs font-semibold ${cfg.badge}`}>{cfg.label}</span>
+                    <Badge variant={cfg.badgeVariant}>{cfg.label}</Badge>
                   </div>
                   {a.reason && <p className="mt-1 text-xs text-muted">사유: {a.reason}</p>}
                 </div>
@@ -361,8 +356,12 @@ const StudentDetailPage = () => {
           </div>
         </SectionCard>
 
-        <SectionCard icon={<Users className="h-5 w-5 text-rose-700" />} iconBg="bg-rose-100" title="학부모 정보" subtitle="연결된 학부모 목록입니다.">
-          <div className="space-y-3">
+        <SectionCard
+          icon={<Users className="h-5 w-5 text-rose-700" />}
+          iconBg="bg-rose-100"
+          title="학부모 정보"
+        >
+          <div className="p-6 space-y-3">
             {parents.length ? parents.map((link: StudentParentLink) =>
               link.parentId ? (
                 <div key={link._id} className="rounded-xl border border-border bg-border/10 p-4">

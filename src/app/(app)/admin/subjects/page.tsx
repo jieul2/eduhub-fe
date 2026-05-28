@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { BookOpen, Plus, Pencil, Trash2, Check, X, RefreshCw } from "lucide-react";
 import api from "@/lib/axiosInstance";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { Alert } from "@/components/ui/Alert/Alert";
+import { Modal } from "@/components/ui/Modal/Modal";
+import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table/Table";
+import Button from "@/components/ui/Button/Button";
 
 interface Subject {
   _id: string;
@@ -89,54 +95,41 @@ export default function SubjectsPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12 max-w-4xl mx-auto w-full p-6">
-      {/* Header */}
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest">Admin</span>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">과목 관리</h1>
-          <p className="text-sm text-muted">수업에 사용되는 과목을 추가, 수정, 삭제합니다.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={fetchSubjects}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-muted text-sm font-medium hover:bg-border/40 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            새로고침
-          </button>
-          <button
-            onClick={() => { setIsModalOpen(true); setCreateValue(""); }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary-hover transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            과목 추가
-          </button>
-        </div>
-      </section>
+      <PageHeader
+        label="Admin"
+        title="과목 관리"
+        description="수업에 사용되는 과목을 추가, 수정, 삭제합니다."
+        actions={
+          <>
+            <Button variant="outline" radius="lg" onClick={fetchSubjects}>
+              <RefreshCw className="w-4 h-4" />
+              새로고침
+            </Button>
+            <Button
+              variant="primary"
+              radius="lg"
+              onClick={() => { setIsModalOpen(true); setCreateValue(""); }}
+            >
+              <Plus className="w-4 h-4" />
+              과목 추가
+            </Button>
+          </>
+        }
+      />
 
       {/* Error Banner */}
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-          <X className="w-4 h-4 shrink-0" />
-          <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
+        <Alert variant="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
       )}
 
       {/* Table Card */}
-      <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5 text-primary" />
-            <span className="font-semibold text-ink text-sm">과목 목록</span>
-            <span className="text-xs font-medium text-muted bg-border/60 px-2.5 py-0.5 rounded-full">
-              {subjects.length}개
-            </span>
-          </div>
-        </div>
-
+      <SectionCard
+        icon={<BookOpen className="w-5 h-5" />}
+        title="과목 목록"
+        badge={`${subjects.length}개`}
+      >
         {isLoading ? (
           <div className="py-20 text-center text-muted text-sm">불러오는 중...</div>
         ) : subjects.length === 0 ? (
@@ -145,20 +138,18 @@ export default function SubjectsPage() {
             <p className="text-muted text-sm">등록된 과목이 없습니다.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-muted uppercase bg-border/20">
-                <th className="text-left px-6 py-3 font-semibold w-12">#</th>
-                <th className="text-left px-6 py-3 font-semibold">과목명</th>
-                <th className="text-left px-6 py-3 font-semibold hidden sm:table-cell">등록일</th>
-                <th className="text-right px-6 py-3 font-semibold">액션</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+          <Table>
+            <TableHead>
+              <Th className="w-12">#</Th>
+              <Th>과목명</Th>
+              <Th className="hidden sm:table-cell">등록일</Th>
+              <Th align="right">액션</Th>
+            </TableHead>
+            <TableBody>
               {subjects.map((subject, idx) => (
-                <tr key={subject._id} className="hover:bg-border/10 transition-colors group">
-                  <td className="px-6 py-4 text-muted font-mono text-xs">{idx + 1}</td>
-                  <td className="px-6 py-4">
+                <TableRow key={subject._id}>
+                  <Td className="text-muted font-mono text-xs">{idx + 1}</Td>
+                  <Td>
                     {editingId === subject._id ? (
                       <input
                         autoFocus
@@ -176,11 +167,11 @@ export default function SubjectsPage() {
                         <span className="font-medium text-ink">{subject.title}</span>
                       </div>
                     )}
-                  </td>
-                  <td className="px-6 py-4 text-muted hidden sm:table-cell">
+                  </Td>
+                  <Td className="text-muted hidden sm:table-cell">
                     {new Date(subject.createdAt).toLocaleDateString("ko-KR")}
-                  </td>
-                  <td className="px-6 py-4">
+                  </Td>
+                  <Td>
                     <div className="flex items-center justify-end gap-1.5">
                       {editingId === subject._id ? (
                         <>
@@ -232,56 +223,53 @@ export default function SubjectsPage() {
                         </>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </Td>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
-      </div>
+      </SectionCard>
 
       {/* Create Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-background rounded-2xl shadow-2xl border border-border p-8 w-full max-w-md mx-4">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-primary" />
-              </div>
-              <h2 className="text-xl font-bold text-ink">과목 추가</h2>
-            </div>
-            <label className="block text-sm font-medium text-ink mb-2">
-              과목명 <span className="text-danger">*</span>
-            </label>
-            <input
-              autoFocus
-              className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 bg-paper"
-              placeholder="예) 수학, 영어, 국어, 과학"
-              value={createValue}
-              onChange={(e) => setCreateValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreate();
-                if (e.key === "Escape") setIsModalOpen(false);
-              }}
-            />
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-muted hover:bg-border/50 transition-colors"
-              >
-                취소
-              </button>
-              <button
-                disabled={isSubmitting || !createValue.trim()}
-                onClick={handleCreate}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              >
-                {isSubmitting ? "추가 중..." : "추가"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="과목 추가"
+        maxWidth="max-w-md"
+        icon={<BookOpen className="w-5 h-5 text-primary" />}
+        footer={
+          <>
+            <Button variant="ghost" radius="lg" onClick={() => setIsModalOpen(false)}>
+              취소
+            </Button>
+            <Button
+              variant="primary"
+              radius="lg"
+              disabled={isSubmitting || !createValue.trim()}
+              isLoading={isSubmitting}
+              onClick={handleCreate}
+            >
+              추가
+            </Button>
+          </>
+        }
+      >
+        <label className="block text-sm font-medium text-ink mb-2">
+          과목명 <span className="text-danger">*</span>
+        </label>
+        <input
+          autoFocus
+          className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 bg-paper"
+          placeholder="예) 수학, 영어, 국어, 과학"
+          value={createValue}
+          onChange={(e) => setCreateValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleCreate();
+            if (e.key === "Escape") setIsModalOpen(false);
+          }}
+        />
+      </Modal>
     </div>
   );
 }

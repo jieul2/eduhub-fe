@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { ScrollText, RefreshCw, Filter, Search, ChevronLeft, ChevronRight, Trash2, ChevronDown } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ScrollText, RefreshCw, Filter, Trash2, ChevronDown } from "lucide-react";
 import api from "@/lib/axiosInstance";
+import { PageHeader } from "@/components/PageHeader/PageHeader";
+import { SectionCard } from "@/components/SectionCard/SectionCard";
+import { Alert } from "@/components/ui/Alert/Alert";
+import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
+import { Dropdown } from "@/components/ui/Dropdown/Dropdown";
+import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table/Table";
+import Button from "@/components/ui/Button/Button";
+import Pagination from "@/components/pagination/Pagination";
 
 interface LogEntry {
   _id: string;
@@ -89,9 +97,7 @@ export default function LogsPage() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDeleteMenuOpen, setIsDeleteMenuOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const deleteMenuRef = useRef<HTMLDivElement>(null);
 
   const [filterMethod, setFilterMethod] = useState<FilterMethod>("ALL");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
@@ -138,7 +144,6 @@ export default function LogsPage() {
 
   const handleDeleteLogs = async (params: Record<string, string>) => {
     setIsDeleting(true);
-    setIsDeleteMenuOpen(false);
     try {
       await api.delete("/logs", { params });
       fetchLogs(1);
@@ -162,71 +167,62 @@ export default function LogsPage() {
 
   return (
     <div className="flex flex-col gap-8 pb-12 max-w-7xl mx-auto w-full p-6">
-      {/* Header */}
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-primary uppercase tracking-widest">Admin</span>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">웹 로그</h1>
-          <p className="text-sm text-muted">DB에 저장된 API 요청 이력을 확인합니다. (90일 보관)</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => fetchLogs(pagination.page)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border text-muted text-sm font-medium hover:bg-border/40 transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            새로고침
-          </button>
-          {/* 삭제 드롭다운 */}
-          <div className="relative" ref={deleteMenuRef}>
-            <button
-              disabled={isDeleting}
-              onClick={() => setIsDeleteMenuOpen((v) => !v)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-danger text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
+      <PageHeader
+        label="Admin"
+        title="웹 로그"
+        description="DB에 저장된 API 요청 이력을 확인합니다. (90일 보관)"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              radius="lg"
+              onClick={() => fetchLogs(pagination.page)}
             >
-              <Trash2 className="w-4 h-4" />
-              로그 삭제
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-            {isDeleteMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 w-52 bg-background border border-border rounded-xl shadow-lg z-10 overflow-hidden">
+              <RefreshCw className="w-4 h-4" />
+              새로고침
+            </Button>
+            <Dropdown
+              trigger={
                 <button
-                  onClick={() => handleDeleteLogs({ all: "true" })}
-                  className="w-full text-left px-4 py-3 text-sm text-danger hover:bg-red-50 transition-colors border-b border-border"
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-red-200 text-danger text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
                 >
-                  전체 삭제
+                  <Trash2 className="w-4 h-4" />
+                  로그 삭제
+                  <ChevronDown className="w-3.5 h-3.5" />
                 </button>
-                <button
-                  onClick={() => {
+              }
+              items={[
+                {
+                  label: "전체 삭제",
+                  onClick: () => handleDeleteLogs({ all: "true" }),
+                  variant: "danger",
+                },
+                {
+                  label: "7일 이전 로그 삭제",
+                  onClick: () => {
                     const d = new Date();
                     d.setDate(d.getDate() - 7);
                     handleDeleteLogs({ before: d.toISOString() });
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm text-ink hover:bg-border/40 transition-colors border-b border-border"
-                >
-                  7일 이전 로그 삭제
-                </button>
-                <button
-                  onClick={() => {
+                  },
+                },
+                {
+                  label: "30일 이전 로그 삭제",
+                  onClick: () => {
                     const d = new Date();
                     d.setDate(d.getDate() - 30);
                     handleDeleteLogs({ before: d.toISOString() });
-                  }}
-                  className="w-full text-left px-4 py-3 text-sm text-ink hover:bg-border/40 transition-colors border-b border-border"
-                >
-                  30일 이전 로그 삭제
-                </button>
-                <button
-                  onClick={() => handleDeleteLogs({ method: "GET" })}
-                  className="w-full text-left px-4 py-3 text-sm text-ink hover:bg-border/40 transition-colors"
-                >
-                  GET 요청만 삭제
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+                  },
+                },
+                {
+                  label: "GET 요청만 삭제",
+                  onClick: () => handleDeleteLogs({ method: "GET" }),
+                },
+              ]}
+            />
+          </>
+        }
+      />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3 p-4 bg-paper rounded-xl border border-border">
@@ -289,32 +285,28 @@ export default function LogsPage() {
         </div>
 
         {/* Username search */}
-        <div className="ml-auto relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted" />
-          <input
-            className="pl-8 pr-3 py-1.5 border border-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 bg-background w-44"
-            placeholder="유저명 검색"
+        <div className="ml-auto">
+          <SearchInput
             value={usernameSearch}
             onChange={(e) => setUsernameSearch(e.target.value)}
+            placeholder="유저명 검색"
           />
         </div>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+        <Alert variant="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
       )}
 
       {/* Table */}
-      <div className="bg-paper rounded-xl border border-border overflow-hidden shadow-sm">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-border">
-          <ScrollText className="w-5 h-5 text-primary" />
-          <span className="font-semibold text-ink text-sm">요청 이력</span>
-          <span className="text-xs font-medium text-muted bg-border/60 px-2.5 py-0.5 rounded-full">
-            총 {pagination.total.toLocaleString()}건
-          </span>
-        </div>
-
+      <SectionCard
+        icon={<ScrollText className="w-5 h-5" />}
+        title="요청 이력"
+        badge={`총 ${pagination.total.toLocaleString()}건`}
+      >
         {isLoading ? (
           <div className="py-20 text-center text-muted text-sm">불러오는 중...</div>
         ) : logs.length === 0 ? (
@@ -324,30 +316,32 @@ export default function LogsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-muted uppercase bg-border/20">
-                  <th className="text-left px-4 py-3 font-semibold whitespace-nowrap">시간</th>
-                  <th className="text-left px-4 py-3 font-semibold">행위자</th>
-                  <th className="text-left px-4 py-3 font-semibold">작업</th>
-                  <th className="text-left px-4 py-3 font-semibold">메서드</th>
-                  <th className="text-left px-4 py-3 font-semibold">경로</th>
-                  <th className="text-left px-4 py-3 font-semibold">상태</th>
-                  <th className="text-left px-4 py-3 font-semibold hidden xl:table-cell">IP</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
+            <Table>
+              <TableHead>
+                <Th className="whitespace-nowrap">시간</Th>
+                <Th>행위자</Th>
+                <Th>작업</Th>
+                <Th>메서드</Th>
+                <Th>경로</Th>
+                <Th>상태</Th>
+                <Th className="hidden xl:table-cell">IP</Th>
+              </TableHead>
+              <TableBody>
                 {logs.map((log) => (
-                  <tr
+                  <TableRow
                     key={log._id}
-                    className={`hover:bg-border/10 transition-colors ${
-                      log.statusCode >= 500 ? "bg-red-50/40" : log.statusCode >= 400 ? "bg-amber-50/30" : ""
-                    }`}
+                    variant={
+                      log.statusCode >= 500
+                        ? "danger"
+                        : log.statusCode >= 400
+                        ? "warning"
+                        : "default"
+                    }
                   >
-                    <td className="px-4 py-3 text-muted text-xs font-mono whitespace-nowrap">
+                    <Td className="text-muted text-xs font-mono whitespace-nowrap">
                       {formatTime(log.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </Td>
+                    <Td>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-ink">
                           {log.username === "anonymous" ? (
@@ -362,59 +356,41 @@ export default function LogsPage() {
                           {ROLE_LABELS[log.role] ?? log.role}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-ink font-medium whitespace-nowrap">
+                    </Td>
+                    <Td className="text-xs text-ink font-medium whitespace-nowrap">
                       {getActionLabel(log.method, log.path)}
-                    </td>
-                    <td className="px-4 py-3">
+                    </Td>
+                    <Td>
                       <span
                         className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
                       >
                         {log.method}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted font-mono max-w-[200px] truncate" title={log.path}>
+                    </Td>
+                    <Td className="text-xs text-muted font-mono max-w-50 truncate" title={log.path}>
                       {log.path}
-                    </td>
-                    <td className={`px-4 py-3 text-xs ${getStatusColor(log.statusCode)}`}>
+                    </Td>
+                    <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
                       {log.statusCode}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted font-mono hidden xl:table-cell">
+                    </Td>
+                    <Td className="text-xs text-muted font-mono hidden xl:table-cell">
                       {log.ip}
-                    </td>
-                  </tr>
+                    </Td>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
-      </div>
+      </SectionCard>
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3">
-          <button
-            disabled={pagination.page <= 1}
-            onClick={() => fetchLogs(pagination.page - 1)}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm text-muted hover:bg-border/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            이전
-          </button>
-          <span className="text-sm text-muted">
-            <span className="font-semibold text-ink">{pagination.page}</span>
-            {" / "}
-            {pagination.totalPages}
-          </span>
-          <button
-            disabled={pagination.page >= pagination.totalPages}
-            onClick={() => fetchLogs(pagination.page + 1)}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-border text-sm text-muted hover:bg-border/40 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            다음
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={fetchLogs}
+        />
       )}
     </div>
   );
