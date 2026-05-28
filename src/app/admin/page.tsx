@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, CreditCard, LogIn, Search, SendHorizontal, UserPlus, X } from "lucide-react";
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type AuthMode = "signin" | "signup";
 
@@ -271,7 +271,7 @@ export default function AdminAuthPage() {
     setMessage(`회원가입 폼에 ${role} 랜덤 데이터가 입력되었습니다.`);
   };
 
-  const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
     try {

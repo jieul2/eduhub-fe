@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Users, Search, RefreshCw, Pencil, Trash2, X,
+  Users, RefreshCw, Pencil, Trash2,
   User, Shield, GraduationCap, BookOpen, Link2,
   UserCheck, ChevronDown, ChevronUp, Plus,
 } from "lucide-react";
@@ -104,8 +104,8 @@ function EditModal({ user, onClose, onSaved }: EditModalProps) {
       await api.put(`/admin/users/${user._id}`, payload);
       onSaved();
       onClose();
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? "업데이트에 실패했습니다.");
+    } catch (e: unknown) {
+      setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "업데이트에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
     }
@@ -257,8 +257,8 @@ export default function UsersPage() {
         const res = await api.get<{ users: UserItem[]; pagination: PaginationData }>("/admin/users", { params });
         setUsers(res.data.users);
         setPagination(res.data.pagination);
-      } catch (e: any) {
-        setError(e?.response?.data?.message ?? "유저 목록을 불러오지 못했습니다.");
+      } catch (e: unknown) {
+        setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "유저 목록을 불러오지 못했습니다.");
       } finally {
         setIsLoading(false);
       }
@@ -287,8 +287,8 @@ export default function UsersPage() {
       await api.delete(`/admin/users/${userId}`);
       setDeleteConfirmId(null);
       fetchUsers(pagination.page);
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? "삭제에 실패했습니다.");
+    } catch (e: unknown) {
+      setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "삭제에 실패했습니다.");
     } finally {
       setIsDeleting(false);
     }
@@ -318,8 +318,8 @@ export default function UsersPage() {
       setLinkSuccess("연결 완료!");
       fetchParents();
       setTimeout(() => { setIsLinkModalOpen(false); setLinkSuccess(null); }, 1200);
-    } catch (e: any) {
-      setLinkError(e?.response?.data?.message ?? "연결에 실패했습니다.");
+    } catch (e: unknown) {
+      setLinkError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "연결에 실패했습니다.");
     } finally {
       setIsLinking(false);
     }
