@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import { ScrollText, RefreshCw, Filter, Trash2, ChevronDown } from "lucide-react";
 import api from "@/lib/axiosInstance";
 import { PageHeader } from "@/components/PageHeader/PageHeader";
@@ -12,25 +13,7 @@ import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/T
 import Button from "@/components/ui/Button/Button";
 import Pagination from "@/components/pagination/Pagination";
 import { cn } from "@/lib/utils";
-
-interface LogEntry {
-  _id: string;
-  userId: string | null;
-  username: string;
-  role: string;
-  method: string;
-  path: string;
-  statusCode: number;
-  body?: Record<string, unknown> | null;
-  createdAt: string;
-}
-
-interface LogPagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
+import type { ServerLogEntry, Pagination as PaginationType } from "@/types/log.types";
 
 type FilterMethod = "ALL" | "GET" | "POST" | "PUT" | "DELETE";
 type FilterStatus = "ALL" | "2xx" | "4xx" | "5xx";
@@ -137,8 +120,8 @@ const getActionLabel = (method: string, path: string): string => {
 };
 
 export default function LogsPage() {
-  const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [pagination, setPagination] = useState<LogPagination>({
+  const [logs, setLogs] = useState<ServerLogEntry[]>([]);
+  const [pagination, setPagination] = useState<PaginationType>({
     page: 1,
     limit: 30,
     total: 0,
@@ -174,14 +157,17 @@ export default function LogsPage() {
         if (filterRole !== "ALL") params.role = filterRole;
         if (debouncedUsername) params.username = debouncedUsername;
 
-        const res = await api.get<{ logs: LogEntry[]; pagination: LogPagination }>("/logs", {
+        const res = await api.get<{ logs: ServerLogEntry[]; pagination: PaginationType }>("/logs", {
           params,
         });
         setLogs(res.data.logs);
         setPagination(res.data.pagination);
         setExpandedRows(new Set());
-      } catch (e: unknown) {
-        setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "로그를 불러오지 못했습니다.");
+      } catch (e) {
+        const message = axios.isAxiosError<{ message?: string }>(e)
+          ? (e.response?.data?.message ?? "로그를 불러오지 못했습니다.")
+          : "로그를 불러오지 못했습니다.";
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -198,9 +184,11 @@ export default function LogsPage() {
     try {
       await api.delete("/logs", { params });
       fetchLogs(1);
-    } catch (e: unknown) {
-      if (e instanceof Error) setError(e.message);
-      else setError("로그 삭제에 실패했습니다.");
+    } catch (e) {
+      const message = axios.isAxiosError<{ message?: string }>(e)
+        ? (e.response?.data?.message ?? "로그 삭제에 실패했습니다.")
+        : "로그 삭제에 실패했습니다.";
+      setError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -375,94 +363,123 @@ export default function LogsPage() {
             <p className="text-muted text-sm">조건에 맞는 로그가 없습니다.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHead>
-                <Th className="whitespace-nowrap">시간</Th>
-                <Th>행위자</Th>
-                <Th>작업</Th>
-                <Th>메서드</Th>
-                <Th>경로</Th>
-                <Th>상태</Th>
-                <Th className="w-8" />
-              </TableHead>
-              <TableBody>
-                {logs.map((log) => {
-                  const hasBody = log.body && EXPANDABLE_METHODS.has(log.method);
-                  const isExpanded = expandedRows.has(log._id);
-                  return (
-                    <React.Fragment key={log._id}>
-                      <TableRow
-                        variant={
-                          log.statusCode >= 500
-                            ? "danger"
-                            : log.statusCode >= 400
-                            ? "warning"
-                            : "default"
-                        }
-                        onClick={hasBody ? () => toggleExpand(log._id) : undefined}
-                      >
-                        <Td className="text-muted text-xs font-mono whitespace-nowrap">
-                          {formatTime(log.createdAt)}
-                        </Td>
-                        <Td>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-ink">
-                              {log.username === "anonymous" ? (
-                                <span className="text-muted italic">비로그인</span>
-                              ) : (
-                                log.username
-                              )}
-                            </span>
-                            <span
-                              className={`px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
-                            >
-                              {ROLE_LABELS[log.role] ?? log.role}
-                            </span>
-                          </div>
-                        </Td>
-                        <Td className="text-xs text-ink font-medium whitespace-nowrap">
-                          {getActionLabel(log.method, log.path)}
-                        </Td>
-                        <Td>
-                          <span
-                            className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
-                          >
-                            {log.method}
+          <Table>
+            <TableHead>
+              {/* 시간: sm 이상에서만 표시 */}
+              <Th className="hidden sm:table-cell whitespace-nowrap">시간</Th>
+              <Th>행위자</Th>
+              <Th>작업</Th>
+              {/* 메서드: lg 이상에서만 표시 */}
+              <Th className="hidden lg:table-cell">메서드</Th>
+              {/* 경로: md 이상에서만 표시 */}
+              <Th className="hidden md:table-cell">경로</Th>
+              <Th>상태</Th>
+              <Th className="w-8" />
+            </TableHead>
+            <TableBody>
+              {logs.map((log) => {
+                const isExpanded = expandedRows.has(log._id);
+                const hasBody = Boolean(log.body) && EXPANDABLE_METHODS.has(log.method);
+                return (
+                  <React.Fragment key={log._id}>
+                    <TableRow
+                      variant={
+                        log.statusCode >= 500
+                          ? "danger"
+                          : log.statusCode >= 400
+                          ? "warning"
+                          : "default"
+                      }
+                      onClick={() => toggleExpand(log._id)}
+                    >
+                      {/* 시간: sm 이상에서만 표시 */}
+                      <Td className="text-muted text-xs font-mono whitespace-nowrap hidden sm:table-cell">
+                        {formatTime(log.createdAt)}
+                      </Td>
+                      <Td>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-ink">
+                            {log.username === "anonymous" ? (
+                              <span className="text-muted italic">비로그인</span>
+                            ) : (
+                              log.username
+                            )}
                           </span>
-                        </Td>
-                        <Td className="text-xs text-muted font-mono max-w-50 truncate" title={log.path}>
-                          {log.path}
-                        </Td>
-                        <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
-                          {log.statusCode}
-                        </Td>
-                        <Td className="w-8 text-center">
-                          {hasBody && (
-                            <ChevronDown
-                              className={cn(
-                                "w-3.5 h-3.5 text-muted transition-transform duration-200",
-                                isExpanded && "rotate-180",
-                              )}
-                            />
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
+                          >
+                            {ROLE_LABELS[log.role] ?? log.role}
+                          </span>
+                        </div>
+                      </Td>
+                      <Td className="text-xs text-ink font-medium">
+                        {getActionLabel(log.method, log.path)}
+                      </Td>
+                      {/* 메서드: lg 이상에서만 표시 */}
+                      <Td className="hidden lg:table-cell">
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
+                        >
+                          {log.method}
+                        </span>
+                      </Td>
+                      {/* 경로: md 이상에서만 표시 */}
+                      <Td className="text-xs text-muted font-mono max-w-50 truncate hidden md:table-cell" title={log.path}>
+                        {log.path}
+                      </Td>
+                      <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
+                        {log.statusCode}
+                      </Td>
+                      <Td className="w-8 text-center">
+                        <ChevronDown
+                          className={cn(
+                            "w-3.5 h-3.5 text-muted transition-transform duration-200",
+                            isExpanded && "rotate-180",
                           )}
-                        </Td>
-                      </TableRow>
-                      {isExpanded && log.body && (
-                        <tr className="bg-slate-50 border-b border-border">
-                          <td colSpan={7} className="px-5 py-3">
-                            <pre className="text-xs font-mono text-ink whitespace-pre-wrap overflow-auto max-h-40 leading-relaxed">
-                              {JSON.stringify(log.body, null, 2)}
-                            </pre>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                        />
+                      </Td>
+                    </TableRow>
+                    {isExpanded && (
+                      <tr className="bg-slate-50 border-b border-border">
+                        <td colSpan={7} className="px-5 py-3">
+                          <div className="flex flex-col gap-2">
+                            {/* 시간 - 항상 표시 */}
+                            <div className="flex gap-3 text-xs">
+                              <span className="text-muted font-semibold w-14 shrink-0">시간</span>
+                              <span className="font-mono text-ink">{formatTime(log.createdAt)}</span>
+                            </div>
+                            {/* 경로 - 전체 경로 표시 */}
+                            <div className="flex gap-3 text-xs">
+                              <span className="text-muted font-semibold w-14 shrink-0">경로</span>
+                              <span className="font-mono text-ink break-all">{log.path}</span>
+                            </div>
+                            {/* 메서드 */}
+                            <div className="flex gap-3 text-xs items-center">
+                              <span className="text-muted font-semibold w-14 shrink-0">메서드</span>
+                              <span
+                                className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[log.method] ?? "bg-slate-100 text-slate-600"}`}
+                              >
+                                {log.method}
+                              </span>
+                            </div>
+                            {/* 요청 데이터 (body) */}
+                            {hasBody && log.body && (
+                              <div className="flex flex-col gap-1 text-xs">
+                                <span className="text-muted font-semibold">요청 데이터</span>
+                                <pre className="font-mono text-ink whitespace-pre-wrap overflow-auto max-h-48 leading-relaxed bg-white rounded-lg border border-border p-2.5">
+                                  {JSON.stringify(log.body, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </TableBody>
+          </Table>
         )}
       </SectionCard>
 

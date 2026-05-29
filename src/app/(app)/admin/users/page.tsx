@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import {
   Users, RefreshCw, Pencil, Trash2,
   User, Shield, GraduationCap, BookOpen, Link2,
@@ -16,39 +17,10 @@ import { SearchInput } from "@/components/ui/SearchInput/SearchInput";
 import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table/Table";
 import Button from "@/components/ui/Button/Button";
 import Pagination from "@/components/pagination/Pagination";
+import type { AdminUserItem, ParentItem } from "@/types/admin.types";
+import type { Pagination as PaginationType } from "@/types/pagination.types";
 
 type Tab = "all" | "parents";
-
-interface UserItem {
-  _id: string;
-  username: string;
-  email: string;
-  phone?: string;
-  role: "admin" | "instructor" | "user";
-  status: "active" | "inactive";
-  gender?: "male" | "female";
-  birthDate?: string;
-  createdAt: string;
-}
-
-interface PaginationData {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-interface LinkedStudent {
-  _id: string;
-  username: string;
-  email: string;
-  phone?: string;
-  status: string;
-}
-
-interface ParentItem extends UserItem {
-  students: LinkedStudent[];
-}
 
 const ROLE_CONFIG = {
   admin: { label: "관리자", icon: Shield, color: "bg-purple-100 text-purple-700" },
@@ -68,7 +40,7 @@ const FIELD_CLASS =
 const LABEL_CLASS = "block text-xs font-semibold text-muted uppercase tracking-wider mb-1.5";
 
 interface EditModalProps {
-  user: UserItem;
+  user: AdminUserItem;
   onClose: () => void;
   onSaved: () => void;
 }
@@ -104,8 +76,12 @@ function EditModal({ user, onClose, onSaved }: EditModalProps) {
       await api.put(`/admin/users/${user._id}`, payload);
       onSaved();
       onClose();
-    } catch (e: unknown) {
-      setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "업데이트에 실패했습니다.");
+    } catch (e) {
+      setError(
+        axios.isAxiosError<{ message?: string }>(e)
+          ? (e.response?.data?.message ?? "업데이트에 실패했습니다.")
+          : "업데이트에 실패했습니다.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -161,8 +137,7 @@ function EditModal({ user, onClose, onSaved }: EditModalProps) {
           <select
             className={FIELD_CLASS}
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as UserItem["role"] })}
-          >
+            onChange={(e) => setForm({ ...form, role: e.target.value as AdminUserItem["role"] })}>
             <option value="user">학생</option>
             <option value="instructor">강사</option>
             <option value="admin">관리자</option>
@@ -173,8 +148,7 @@ function EditModal({ user, onClose, onSaved }: EditModalProps) {
           <select
             className={FIELD_CLASS}
             value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as UserItem["status"] })}
-          >
+            onChange={(e) => setForm({ ...form, status: e.target.value as AdminUserItem["status"] })}>
             <option value="active">활성</option>
             <option value="inactive">비활성</option>
           </select>
@@ -216,8 +190,8 @@ function EditModal({ user, onClose, onSaved }: EditModalProps) {
 export default function UsersPage() {
   const [tab, setTab] = useState<Tab>("all");
 
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [pagination, setPagination] = useState<PaginationData>({ page: 1, limit: 10, total: 0, totalPages: 1 });
+  const [users, setUsers] = useState<AdminUserItem[]>([]);
+  const [pagination, setPagination] = useState<PaginationType>({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [isLoading, setIsLoading] = useState(false);
   const [roleFilter, setRoleFilter] = useState("ALL");
   const [nameSearch, setNameSearch] = useState("");
@@ -227,12 +201,12 @@ export default function UsersPage() {
   const [isParentLoading, setIsParentLoading] = useState(false);
   const [expandedParent, setExpandedParent] = useState<string | null>(null);
 
-  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUserItem | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-  const [allUsersList, setAllUsersList] = useState<UserItem[]>([]);
+  const [allUsersList, setAllUsersList] = useState<AdminUserItem[]>([]);
   const [selectedParentId, setSelectedParentId] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [isLinking, setIsLinking] = useState(false);
@@ -254,11 +228,14 @@ export default function UsersPage() {
         const params: Record<string, string> = { page: String(page), limit: "10" };
         if (roleFilter !== "ALL") params.role = roleFilter;
         if (debouncedName) params.name = debouncedName;
-        const res = await api.get<{ users: UserItem[]; pagination: PaginationData }>("/admin/users", { params });
+        const res = await api.get<{ users: AdminUserItem[]; pagination: PaginationType }>("/admin/users", { params });
         setUsers(res.data.users);
         setPagination(res.data.pagination);
-      } catch (e: unknown) {
-        setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "유저 목록을 불러오지 못했습니다.");
+      } catch (e) {
+        const message = axios.isAxiosError<{ message?: string }>(e)
+          ? (e.response?.data?.message ?? "유저 목록을 불러오지 못했습니다.")
+          : "유저 목록을 불러오지 못했습니다.";
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -287,8 +264,11 @@ export default function UsersPage() {
       await api.delete(`/admin/users/${userId}`);
       setDeleteConfirmId(null);
       fetchUsers(pagination.page);
-    } catch (e: unknown) {
-      setError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "삭제에 실패했습니다.");
+    } catch (e) {
+      const message = axios.isAxiosError<{ message?: string }>(e)
+        ? (e.response?.data?.message ?? "삭제에 실패했습니다.")
+        : "삭제에 실패했습니다.";
+      setError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -300,7 +280,7 @@ export default function UsersPage() {
     setSelectedParentId("");
     setSelectedStudentId("");
     try {
-      const res = await api.get<{ users: UserItem[] }>("/admin/users", { params: { limit: 200 } });
+      const res = await api.get<{ users: AdminUserItem[] }>("/admin/users", { params: { limit: 200 } });
       setAllUsersList(res.data.users);
     } catch { /* silent */ }
     setIsLinkModalOpen(true);
@@ -318,8 +298,11 @@ export default function UsersPage() {
       setLinkSuccess("연결 완료!");
       fetchParents();
       setTimeout(() => { setIsLinkModalOpen(false); setLinkSuccess(null); }, 1200);
-    } catch (e: unknown) {
-      setLinkError((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "연결에 실패했습니다.");
+    } catch (e) {
+      const message = axios.isAxiosError<{ message?: string }>(e)
+        ? (e.response?.data?.message ?? "연결에 실패했습니다.")
+        : "연결에 실패했습니다.";
+      setLinkError(message);
     } finally {
       setIsLinking(false);
     }
@@ -414,7 +397,6 @@ export default function UsersPage() {
                 <p className="text-muted text-sm">유저가 없습니다.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
               <Table>
                 <TableHead>
                   <Th>유저</Th>
@@ -500,7 +482,6 @@ export default function UsersPage() {
                   })}
                 </TableBody>
               </Table>
-              </div>
             )}
           </SectionCard>
 

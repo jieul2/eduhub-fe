@@ -1,3 +1,7 @@
+import type { Pagination } from "@/types/pagination.types";
+
+export type { Pagination as StudentPagination };
+
 export interface Student {
 	_id: string;
 	username: string;
@@ -9,13 +13,6 @@ export interface Student {
 	email: string;
 	createdAt?: string;
 	updatedAt?: string;
-}
-
-export interface StudentPagination {
-	page: number;
-	limit: number;
-	total: number;
-	totalPages: number;
 }
 
 export interface StudentAchievement {

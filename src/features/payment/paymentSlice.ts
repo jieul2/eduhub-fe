@@ -1,6 +1,7 @@
+import axios from "axios";
 import { StateCreator } from "zustand";
 import api from "../../lib/axiosInstance";
-import type { Pagination, Payment } from "../../types/payment.types";
+import type { Payment, Pagination } from "@/types/payment.types";
 
 interface PaymentSlice {
     payments: Payment[];
@@ -38,11 +39,10 @@ const createPaymentSlice: StateCreator<
                 isLoading: false,
             });
         } catch (error) {
-            if (error instanceof Error) {
-                set({ payments: [], error: error.message, isLoading: false });
-            } else {
-                set({ payments: [], error: "An unknown error occurred", isLoading: false });
-            }
+            const message = axios.isAxiosError<{ message?: string }>(error)
+              ? (error.response?.data?.message ?? error.message)
+              : error instanceof Error ? error.message : "오류가 발생했습니다.";
+            set({ payments: [], error: message, isLoading: false });
         }
     },
 });

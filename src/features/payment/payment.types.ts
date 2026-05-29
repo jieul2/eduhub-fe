@@ -1,27 +1,7 @@
-export interface Payment {
-  _id: string;
-  studentId: string;
-  amount: number;
-  status: "pending" | "completed" | "failed";
-  user?: {
-    username?: string;
-  };
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface PaymentPagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-export interface PaymentListResponse {
-  payments: Payment[];
-  pagination: PaymentPagination;
-}
-
-export interface PaymentDetailResponse {
-  payment: Payment;
-}
+// 타입은 @/types/payment.types 에서 중앙 관리합니다.
+export type {
+  Payment,
+  PaymentListResponse,
+  PaymentDetailResponse,
+  Pagination as PaymentPagination,
+} from "@/types/payment.types";
