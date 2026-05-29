@@ -1,7 +1,11 @@
 import { cn } from "@/lib/utils";
 
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <table className={cn("w-full text-sm", className)}>{children}</table>;
+  return (
+    <div className="overflow-x-auto">
+      <table className={cn("w-full text-sm", className)}>{children}</table>
+    </div>
+  );
 }
 
 export function TableHead({ children }: { children: React.ReactNode }) {
@@ -55,7 +59,7 @@ interface ThProps {
 
 export function Th({ children, align = "left", className }: ThProps) {
   return (
-    <th className={cn("px-5 py-3 font-semibold", `text-${align}`, className)}>{children}</th>
+    <th className={cn("px-3 sm:px-5 py-3 font-semibold whitespace-nowrap", `text-${align}`, className)}>{children}</th>
   );
 }
 
@@ -68,7 +72,7 @@ interface TdProps {
 
 export function Td({ children, className, colSpan, title }: TdProps) {
   return (
-    <td colSpan={colSpan} title={title} className={cn("px-5 py-3", className)}>
+    <td colSpan={colSpan} title={title} className={cn("px-3 sm:px-5 py-3", className)}>
       {children}
     </td>
   );

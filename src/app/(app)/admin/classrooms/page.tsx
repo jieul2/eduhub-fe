@@ -150,71 +150,69 @@ export default function ClassroomsPage() {
             <p className="text-muted text-sm">등록된 강의실이 없습니다.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHead>
-                <Th className="w-10">#</Th>
-                <Th>강의실</Th>
-                <Th className="hidden sm:table-cell">등록일</Th>
-                <Th align="right" className="w-28">액션</Th>
-              </TableHead>
-              <TableBody>
-                {classrooms.map((room, idx) => (
-                  <TableRow key={room._id}>
-                    <Td className="text-muted font-mono text-xs">{idx + 1}</Td>
-                    <Td>
-                      <div className="flex flex-col gap-0.5">
-                        <span className="font-medium text-ink">{room.classroomName}</span>
-                        {room.description && (
-                          <span className="text-xs text-muted line-clamp-1">{room.description}</span>
-                        )}
-                      </div>
-                    </Td>
-                    <Td className="text-muted hidden sm:table-cell whitespace-nowrap">
-                      {new Date(room.createdAt).toLocaleDateString("ko-KR")}
-                    </Td>
-                    <Td>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {deleteConfirmId === room._id ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-danger font-medium whitespace-nowrap">삭제할까요?</span>
-                            <button
-                              disabled={isSubmitting}
-                              onClick={() => handleDelete(room._id)}
-                              className="px-2 py-1 rounded-md bg-danger text-white text-xs font-semibold hover:bg-red-600 transition-colors shrink-0"
-                            >
-                              확인
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirmId(null)}
-                              className="px-2 py-1 rounded-md bg-border/60 text-muted text-xs font-semibold hover:bg-border transition-colors shrink-0"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => openEdit(room)}
-                              className="p-1.5 rounded-md text-muted hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => { setDeleteConfirmId(room._id); }}
-                              className="p-1.5 rounded-md text-muted hover:text-danger hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </Td>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Table>
+            <TableHead>
+              <Th className="w-10">#</Th>
+              <Th>강의실</Th>
+              <Th className="hidden sm:table-cell">등록일</Th>
+              <Th align="right" className="w-28">액션</Th>
+            </TableHead>
+            <TableBody>
+              {classrooms.map((room, idx) => (
+                <TableRow key={room._id}>
+                  <Td className="text-muted font-mono text-xs">{idx + 1}</Td>
+                  <Td>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium text-ink truncate">{room.classroomName}</span>
+                      {room.description && (
+                        <span className="text-xs text-muted line-clamp-1">{room.description}</span>
+                      )}
+                    </div>
+                  </Td>
+                  <Td className="text-muted hidden sm:table-cell whitespace-nowrap">
+                    {new Date(room.createdAt).toLocaleDateString("ko-KR")}
+                  </Td>
+                  <Td className="whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {deleteConfirmId === room._id ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-danger font-medium whitespace-nowrap">삭제할까요?</span>
+                          <button
+                            disabled={isSubmitting}
+                            onClick={() => handleDelete(room._id)}
+                            className="px-2 py-1 rounded-md bg-danger text-white text-xs font-semibold hover:bg-red-600 transition-colors shrink-0"
+                          >
+                            확인
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-2 py-1 rounded-md bg-border/60 text-muted text-xs font-semibold hover:bg-border transition-colors shrink-0"
+                          >
+                            취소
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => openEdit(room)}
+                            className="p-1.5 rounded-md text-muted hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => { setDeleteConfirmId(room._id); }}
+                            className="p-1.5 rounded-md text-muted hover:text-danger hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </SectionCard>
 

@@ -150,74 +150,72 @@ export default function SubjectsPage() {
             <p className="text-muted text-sm">등록된 과목이 없습니다.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHead>
-                <Th className="w-10">#</Th>
-                <Th>과목</Th>
-                <Th className="hidden sm:table-cell">등록일</Th>
-                <Th align="right" className="w-28">액션</Th>
-              </TableHead>
-              <TableBody>
-                {subjects.map((subject, idx) => (
-                  <TableRow key={subject._id}>
-                    <Td className="text-muted font-mono text-xs">{idx + 1}</Td>
-                    <Td>
-                      <div className="flex flex-col gap-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-primary/60 shrink-0" />
-                          <span className="font-medium text-ink">{subject.title}</span>
+          <Table>
+            <TableHead>
+              <Th className="w-10">#</Th>
+              <Th>과목</Th>
+              <Th className="hidden sm:table-cell">등록일</Th>
+              <Th align="right" className="w-28">액션</Th>
+            </TableHead>
+            <TableBody>
+              {subjects.map((subject, idx) => (
+                <TableRow key={subject._id}>
+                  <Td className="text-muted font-mono text-xs">{idx + 1}</Td>
+                  <Td>
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-primary/60 shrink-0" />
+                        <span className="font-medium text-ink truncate">{subject.title}</span>
+                      </div>
+                      {subject.description && (
+                        <span className="text-xs text-muted line-clamp-1 pl-4">{subject.description}</span>
+                      )}
+                    </div>
+                  </Td>
+                  <Td className="text-muted hidden sm:table-cell whitespace-nowrap">
+                    {new Date(subject.createdAt).toLocaleDateString("ko-KR")}
+                  </Td>
+                  <Td className="whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {deleteConfirmId === subject._id ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-danger font-medium whitespace-nowrap">삭제할까요?</span>
+                          <button
+                            disabled={isSubmitting}
+                            onClick={() => handleDelete(subject._id)}
+                            className="px-2 py-1 rounded-md bg-danger text-white text-xs font-semibold hover:bg-red-600 transition-colors shrink-0"
+                          >
+                            확인
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="px-2 py-1 rounded-md bg-border/60 text-muted text-xs font-semibold hover:bg-border transition-colors shrink-0"
+                          >
+                            취소
+                          </button>
                         </div>
-                        {subject.description && (
-                          <span className="text-xs text-muted line-clamp-1 pl-4">{subject.description}</span>
-                        )}
-                      </div>
-                    </Td>
-                    <Td className="text-muted hidden sm:table-cell whitespace-nowrap">
-                      {new Date(subject.createdAt).toLocaleDateString("ko-KR")}
-                    </Td>
-                    <Td>
-                      <div className="flex items-center justify-end gap-1.5">
-                        {deleteConfirmId === subject._id ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs text-danger font-medium whitespace-nowrap">삭제할까요?</span>
-                            <button
-                              disabled={isSubmitting}
-                              onClick={() => handleDelete(subject._id)}
-                              className="px-2 py-1 rounded-md bg-danger text-white text-xs font-semibold hover:bg-red-600 transition-colors shrink-0"
-                            >
-                              확인
-                            </button>
-                            <button
-                              onClick={() => setDeleteConfirmId(null)}
-                              className="px-2 py-1 rounded-md bg-border/60 text-muted text-xs font-semibold hover:bg-border transition-colors shrink-0"
-                            >
-                              취소
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => openEdit(subject)}
-                              className="p-1.5 rounded-md text-muted hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => { setDeleteConfirmId(subject._id); }}
-                              className="p-1.5 rounded-md text-muted hover:text-danger hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </Td>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => openEdit(subject)}
+                            className="p-1.5 rounded-md text-muted hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => { setDeleteConfirmId(subject._id); }}
+                            className="p-1.5 rounded-md text-muted hover:text-danger hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </SectionCard>
 

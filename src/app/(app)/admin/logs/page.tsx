@@ -397,8 +397,8 @@ export default function LogsPage() {
                         {formatTime(log.createdAt)}
                       </Td>
                       <Td>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium text-ink">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-sm font-medium text-ink truncate">
                             {log.username === "anonymous" ? (
                               <span className="text-muted italic">비로그인</span>
                             ) : (
@@ -406,13 +406,13 @@ export default function LogsPage() {
                             )}
                           </span>
                           <span
-                            className={`px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
+                            className={`shrink-0 px-1.5 py-0.5 rounded text-xs font-semibold ${ROLE_COLORS[log.role] ?? "bg-slate-100 text-slate-500"}`}
                           >
                             {ROLE_LABELS[log.role] ?? log.role}
                           </span>
                         </div>
                       </Td>
-                      <Td className="text-xs text-ink font-medium">
+                      <Td className="text-xs text-ink font-medium whitespace-nowrap">
                         {getActionLabel(log.method, log.path)}
                       </Td>
                       {/* 메서드: lg 이상에서만 표시 */}
@@ -427,7 +427,7 @@ export default function LogsPage() {
                       <Td className="text-xs text-muted font-mono max-w-50 truncate hidden md:table-cell" title={log.path}>
                         {log.path}
                       </Td>
-                      <Td className={`text-xs ${getStatusColor(log.statusCode)}`}>
+                      <Td className={`text-xs whitespace-nowrap ${getStatusColor(log.statusCode)}`}>
                         {log.statusCode}
                       </Td>
                       <Td className="w-8 text-center">

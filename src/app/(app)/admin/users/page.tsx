@@ -414,21 +414,21 @@ export default function UsersPage() {
                     return (
                       <TableRow key={user._id}>
                         <Td>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${rc.color}`}>
                               <RoleIcon className="w-4 h-4" />
                             </div>
-                            <div>
-                              <p className="font-semibold text-ink">{user.username}</p>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-ink truncate">{user.username}</p>
                               <p className="text-xs text-muted font-mono">{user._id.slice(-8)}</p>
                             </div>
                           </div>
                         </Td>
                         <Td className="text-muted text-sm hidden sm:table-cell">{user.email}</Td>
-                        <Td>
+                        <Td className="whitespace-nowrap">
                           <Badge variant={ROLE_BADGE_VARIANT[user.role]} rounded="full">{rc.label}</Badge>
                         </Td>
-                        <Td>
+                        <Td className="whitespace-nowrap">
                           <Badge
                             variant={user.status === "active" ? "success" : "neutral"}
                             rounded="full"
@@ -436,11 +436,11 @@ export default function UsersPage() {
                             {user.status === "active" ? "활성" : "비활성"}
                           </Badge>
                         </Td>
-                        <Td className="text-muted text-sm hidden lg:table-cell">{user.phone ?? "-"}</Td>
-                        <Td className="text-muted text-sm hidden xl:table-cell">
+                        <Td className="text-muted text-sm hidden lg:table-cell whitespace-nowrap">{user.phone ?? "-"}</Td>
+                        <Td className="text-muted text-sm hidden xl:table-cell whitespace-nowrap">
                           {new Date(user.createdAt).toLocaleDateString("ko-KR")}
                         </Td>
-                        <Td>
+                        <Td className="whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1.5">
                             {deleteConfirmId === user._id ? (
                               <div className="flex items-center gap-2">
