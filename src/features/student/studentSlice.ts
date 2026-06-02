@@ -1,6 +1,7 @@
+import axios from "axios";
 import { StateCreator } from "zustand";
 import api from "../../lib/axiosInstance";
-import { Student, StudentPagination } from "./student.types";
+import type { Student, StudentPagination } from "./student.types";
 
 interface StudentSlice {
   students: Student[];
@@ -39,11 +40,10 @@ const createStudentSlice: StateCreator<
         isLoading: false,
       });
     } catch (error) {
-      if (error instanceof Error) {
-        set({ students: [], error: error.message, isLoading: false });
-      } else {
-        set({ students: [], error: "An unknown error occurred", isLoading: false });
-      }
+      const message = axios.isAxiosError<{ message?: string }>(error)
+        ? (error.response?.data?.message ?? error.message)
+        : error instanceof Error ? error.message : "오류가 발생했습니다.";
+      set({ students: [], error: message, isLoading: false });
     }
   },
 });

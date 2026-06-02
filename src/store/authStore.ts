@@ -13,9 +13,11 @@ export interface User {
 interface AuthState {
   user: User | null;
   isLoggedIn: boolean;
-  
+  _hasHydrated: boolean;
+
   login: (token: string) => void;
   logout: () => void;
+  _setHasHydrated: (v: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -23,22 +25,22 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isLoggedIn: false,
+      _hasHydrated: false,
 
-      // 로그인 성공 시
+      _setHasHydrated: (v) => set({ _hasHydrated: v }),
+
       login: (token) => {
         localStorage.setItem('auth-token', token);
-        
+
         try {
-          // 디코딩하여 유저 정보 추출 (한글 깨짐 방지)
           const base64Url = token.split('.')[1];
           const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
           const jsonPayload = decodeURIComponent(
             window.atob(base64).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
           );
-          
+
           const payload = JSON.parse(jsonPayload);
 
-          // 추출한 정보를 전역 user 상태에 세팅
           set({
             isLoggedIn: true,
             user: {
@@ -54,16 +56,18 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // 로그아웃 시
       logout: () => {
         localStorage.removeItem('auth-token');
         set({ user: null, isLoggedIn: false });
-        
         window.location.href = '/login';
       },
     }),
     {
       name: 'auth-storage',
+      partialize: (state) => ({ user: state.user, isLoggedIn: state.isLoggedIn }),
+      onRehydrateStorage: () => (state) => {
+        state?._setHasHydrated(true);
+      },
     }
   )
 );

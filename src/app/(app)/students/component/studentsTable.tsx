@@ -1,79 +1,71 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { User, Mail, Phone } from "lucide-react";
 import { Student } from "../../../../features/student/student.types";
+import { Badge } from "@/components/ui/Badge/Badge";
+import { Table, TableHead, TableBody, TableRow, Th, Td } from "@/components/ui/Table/Table";
 
 const StudentsTable = ({ users }: { users: Student[] }) => {
   const router = useRouter();
 
   return (
-    <div className="bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_-10px_rgba(0,55,72,0.08)] overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/50">
-              <th className="px-6 py-4 w-12">
-                <input
-                  className="rounded border-slate-300 text-primary focus:ring-primary"
-                  type="checkbox"
-                />
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                성명
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                생년월일
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                성별
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                휴대폰번호
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                이메일
-              </th>
-              <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 font-label">
-                상태
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100/50">
-            {users.map((user, index) => (
-              <tr
-                key={user._id ?? index}
-                className="hover:bg-slate-50/50 cursor-pointer"
-                onClick={() => router.push(`/students/${user._id}`)}
-              >
-                <td className="px-6 py-4 w-12">
-                  <input
-                    className="rounded border-slate-300 text-primary focus:ring-primary"
-                    type="checkbox"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </td>
-                <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
-                <td className="px-6 py-4 text-slate-600">
-                  {user.birthDate ? new Date(user.birthDate).toLocaleDateString() : ""}
-                </td>
-                <td className="px-6 py-4 text-slate-600">
-                  {user.gender === "male" ? "남성" : "여성"}
-                </td>
-                <td className="px-6 py-4 text-slate-600">{user.phone}</td>
-                <td className="px-6 py-4 text-slate-600">{user.email}</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    {user.status === "active" ? "활성" : "비활성"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {/* Pagination 백엔드 구현 및 프론트엔드 연동 필요 (하드코딩) */}
-      
-    </div>
+    <Table>
+      <TableHead>
+        <Th>성명</Th>
+        <Th className="hidden sm:table-cell">생년월일</Th>
+        <Th className="hidden sm:table-cell">성별</Th>
+        <Th className="hidden md:table-cell">
+          <div className="flex items-center gap-1.5">
+            <Phone className="w-3 h-3" />
+            연락처
+          </div>
+        </Th>
+        <Th className="hidden lg:table-cell">
+          <div className="flex items-center gap-1.5">
+            <Mail className="w-3 h-3" />
+            이메일
+          </div>
+        </Th>
+        <Th>상태</Th>
+      </TableHead>
+      <TableBody>
+        {users.map((user, index) => (
+          <TableRow
+            key={user._id ?? index}
+            onClick={() => router.push(`/students/${user._id}`)}
+          >
+            <Td>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-border/40 flex items-center justify-center shrink-0">
+                  <User className="w-3.5 h-3.5 text-muted" />
+                </div>
+                <span className="font-medium text-ink group-hover:text-primary transition-colors truncate">
+                  {user.username}
+                </span>
+              </div>
+            </Td>
+            <Td className="text-muted text-xs hidden sm:table-cell whitespace-nowrap">
+              {user.birthDate ? new Date(user.birthDate).toLocaleDateString("ko-KR") : "-"}
+            </Td>
+            <Td className="text-muted text-xs hidden sm:table-cell whitespace-nowrap">
+              {user.gender === "male" ? "남성" : user.gender === "female" ? "여성" : "-"}
+            </Td>
+            <Td className="text-muted text-xs font-mono hidden md:table-cell whitespace-nowrap">
+              {user.phone || "-"}
+            </Td>
+            <Td className="text-muted text-xs hidden lg:table-cell truncate max-w-40">
+              {user.email}
+            </Td>
+            <Td className="whitespace-nowrap">
+              <Badge variant={user.status === "active" ? "success" : "neutral"}>
+                {user.status === "active" ? "활성" : "비활성"}
+              </Badge>
+            </Td>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 
