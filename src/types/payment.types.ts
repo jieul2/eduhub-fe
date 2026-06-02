@@ -1,20 +1,24 @@
+import type { Pagination } from "./pagination.types";
+
+export type { Pagination };
+
 export interface Payment {
-  user: {
-    username: string;
-    role: string;
-    status: string;
-    gender: string;
-    birthDate: string;
-    phone: string;
-    email: string;
-  };
+  _id: string;
+  studentId: string;
   amount: number;
-  status: string;
+  status: "pending" | "completed" | "failed";
+  user?: {
+    username?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
+export interface PaymentListResponse {
+  payments: Payment[];
+  pagination: Pagination;
+}
+
+export interface PaymentDetailResponse {
+  payment: Payment;
 }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard, CalendarDays, Clock, MapPin,
-    Users, CreditCard, Settings,
+    Users, CreditCard, Settings, Building2, BookOpen, ScrollText, UserCog,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NavGroup, UserRole } from './Layout.types';
@@ -24,6 +24,10 @@ const ALL_NAV_GROUPS: NavGroup[] = [
         items: [
             { label: '학생 관리', href: '/students', icon: Users, allowedRoles: ['admin', 'instructor'] },
             { label: '결제 관리', href: '/payments', icon: CreditCard, allowedRoles: ['admin'] },
+            { label: '유저 관리', href: '/admin/users', icon: UserCog, allowedRoles: ['admin'] },
+            { label: '강의실 관리', href: '/admin/classrooms', icon: Building2, allowedRoles: ['admin'] },
+            { label: '과목 관리', href: '/admin/subjects', icon: BookOpen, allowedRoles: ['admin'] },
+            { label: '웹 로그', href: '/admin/logs', icon: ScrollText, allowedRoles: ['admin'] },
         ],
     },
     {

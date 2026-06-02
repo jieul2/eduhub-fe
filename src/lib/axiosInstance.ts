@@ -1,4 +1,13 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
+import { logStore } from "./logStore";
+import { useAuthStore } from "@/store/authStore";
+
+// axios config에 커스텀 필드 타입 확장
+declare module "axios" {
+  interface InternalAxiosRequestConfig {
+    __startTime?: number;
+  }
+}
 
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -6,67 +15,68 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-console.log("Axios instance created with baseURL:", process.env.NEXT_PUBLIC_API_URL);
 
-// 요청 인터셉터: 로깅 + 인증 토큰 삽입
 axiosInstance.interceptors.request.use(
-  (config) => {
-    // 1. 요청 로깅
-    console.log("▶️ [Start] Request", config.method?.toUpperCase(), config.url);
+  (config: InternalAxiosRequestConfig) => {
+    config.__startTime = Date.now();
 
-    // 2. 토큰 삽입 (클라이언트 사이드 브라우저 환경 확인)
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("auth-token");
       if (token) {
-        // 백엔드 authMiddleware의 Bearer 토큰 검증 방식에 맞춤
         config.headers.Authorization = `Bearer ${token}`;
       }
+      logStore.add({
+        timestamp: new Date(),
+        level: "info",
+        method: config.method?.toUpperCase() ?? "GET",
+        url: config.url ?? "",
+      });
     }
 
     return config;
   },
-  (error) => {
-    console.error("❌ [Error] Request", error);
-    return Promise.reject(error);
-  },
+  (error: unknown) => Promise.reject(error),
 );
 
-// 응답 인터셉터: 로깅 + 공통 에러 처리
 axiosInstance.interceptors.response.use(
   (response) => {
-    // 응답 성공 로깅
-    console.log("✅ [Success] Response", response.status, response.config.url);
+    if (typeof window !== "undefined") {
+      const startTime = response.config.__startTime;
+      const duration = startTime !== undefined ? Date.now() - startTime : undefined;
+      logStore.add({
+        timestamp: new Date(),
+        level: "success",
+        method: response.config.method?.toUpperCase() ?? "GET",
+        url: response.config.url ?? "",
+        status: response.status,
+        duration,
+      });
+    }
     return response;
   },
-  (error) => {
-    // 응답 에러 로깅
-    console.error("❌ [Error] Response", {
-      status: error.response?.status || "No response",
-      statusText: error.response?.statusText || "No status text",
-      url: error.config?.url || "Unknown URL",
-      data: error.response?.data || "No response data",
-      headers: error.response?.headers || "No headers",
-    });
+  (error: unknown) => {
+    if (typeof window !== "undefined" && axios.isAxiosError(error)) {
+      const startTime = error.config?.__startTime;
+      const duration = startTime !== undefined ? Date.now() - startTime : undefined;
+      const status = error.response?.status ?? 0;
 
-    // 공통 에러 처리: 401(인증 만료/실패) 시 처리
-    if (error.response?.status === 401) {
-      if (typeof window !== "undefined") {
-        console.warn("인증이 만료되었습니다. 로그인이 필요합니다.");
+      logStore.add({
+        timestamp: new Date(),
+        level: status >= 400 ? "error" : "warn",
+        method: error.config?.method?.toUpperCase() ?? "GET",
+        url: error.config?.url ?? "",
+        status,
+        duration,
+      });
+
+      if (status === 401 && useAuthStore.getState()._hasHydrated) {
         localStorage.removeItem("auth-token");
-        // 필요 시 window.location.href = "/login" 등으로 이동 처리
+        useAuthStore.setState({ user: null, isLoggedIn: false });
       }
     }
 
     return Promise.reject(error);
   },
 );
-
-axiosInstance.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  if (token && config.headers) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-  }
-  return config;
-});
 
 export default axiosInstance;
