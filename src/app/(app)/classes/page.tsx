@@ -5,27 +5,19 @@ import { Plus, Calendar as CalendarIcon } from "lucide-react";
 import Button from "../../../components/ui/Button/Button";
 import TimeTableView from "./component/TimeTableView";
 import ClassRegistrationModal from "./component/ClassRegistrationModal";
-import { getClasses } from "../../../lib/api/classes";
-import { ClassSchedule } from "../../../types/classes.types";
+import { getTimetable } from "../../../lib/api/classes";
+import { ClassData } from "../../../types/classes.types";
 
 const ClassesPage = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [classesData, setClassesData] = useState<ClassSchedule[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const fetchClasses = async () => {
-    try {
-      setIsLoading(true);
-      const res = await getClasses();
-      setClassesData(res.classes);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
+  // TimeTableView 내부에서 데이터를 가져오므로 여기서는 상태 관리가 단순화됩니다.
+  // 필요 시 fetchTimetable을 onSuccess 콜백으로 활용할 수 있습니다.
+  const refreshTimetable = () => {
+    // 필요 시 TimeTableView를 새로고침하거나 데이터를 재조회하는 로직 추가
+    window.location.reload(); 
   };
-
-  useEffect(() => { fetchClasses(); }, []);
 
   return (
     <div className="flex flex-col gap-8 pb-12 max-w-350 mx-auto w-full p-5 md:p-8 bg-background">
@@ -49,26 +41,16 @@ const ClassesPage = () => {
         </div>
       </section>
 
-      {/* 모달 */}
+{/* 모달 */}
       <ClassRegistrationModal 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
-        onSuccess={fetchClasses} 
+        onSuccess={refreshTimetable} 
       />
-
-      {/* 뷰 영역 */}
-      {!isLoading && (
-        <TimeTableView classes={classesData} />
-      )}
       
-      {isLoading && (
-        <div className="h-96 flex items-center justify-center text-muted font-medium text-sm">
-          <div className="flex items-center gap-2">
-            <div className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            시간표를 불러오는 중...
-          </div>
-        </div>
-      )}
+      {/* 시간표 뷰 */}
+      <TimeTableView />
+      
     </div>
   );
 };
