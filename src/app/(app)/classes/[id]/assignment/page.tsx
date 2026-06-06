@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getDetailClass, updateClass } from "@/lib/api/classes";
 import { getStudents } from "@/lib/api/student";
@@ -22,11 +22,7 @@ export default function StudentAssignmentPage() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  const fetchData = async () => {
+const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       const detail = await getDetailClass(id);
@@ -38,7 +34,11 @@ export default function StudentAssignmentPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAddStudent = async () => {
     if (!selectedStudentId || !classData) return;

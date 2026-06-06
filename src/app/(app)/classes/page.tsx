@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Plus, Calendar as CalendarIcon, AlertCircle } from "lucide-react";
 import Button from "../../../components/ui/Button/Button";
-import AdminTimetable from "./component/AdminTimetable";
+import AdminTimetableView from "./component/AdminTimetableView";
 import ClassRegistrationModal from "./component/ClassRegistrationModal";
 import { getTimetable } from "../../../lib/api/classes";
 import { ClassData } from "../../../types/classes.types";
@@ -17,19 +17,22 @@ const ClassesPage = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  
+const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await getTimetable();
+      setClasses(data);
+    } catch (error) {
+      console.error("데이터 로드 실패:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); 
 
-  // 데이터 로드
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    const data = await getTimetable();
-    console.log("API 응답 데이터:", data);
-    setClasses(data);
-    setIsLoading(false);
-  };
+  }, [fetchData]);
 
   // 시험 일정 배너 로직 (D-Day 계산)
 const upcomingExams = useMemo(() => {
@@ -88,7 +91,7 @@ const upcomingExams = useMemo(() => {
       {isLoading ? (
         <div className="text-center py-20 text-muted">데이터를 불러오는 중...</div>
       ) : isAdmin ? (
-        <AdminTimetable />
+        <AdminTimetableView />
       ) : user?.role === 'instructor' ? (
         <InstructorTimelineView classes={classes} />
       ) : (

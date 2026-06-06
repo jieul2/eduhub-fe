@@ -11,6 +11,7 @@ import { getTimetable, updateScheduleTime } from '@/lib/api/classes';
 import { ClassData } from '@/types/classes.types';
 import { getDayIndex } from '@/utils/timeTable.utils';
 import { useRouter } from 'next/navigation';
+import {ChangedSchedule} from "@/types/classes.types";
 
 // 시간표 고정을 위한 임의의 날짜 (2024년 1월 8일 월요일 ~ 1월 13일 토요일)
 // FullCalendar에서 반복적인 주간 시간표를 표현하기 위해 사용
@@ -20,14 +21,14 @@ const getDummyDate = (dayOfWeek: number, timeStr: string) => {
   return `2024-01-${baseDate.toString().padStart(2, '0')}T${timeStr}:00`;
 };
 
-export default function TimeTableView() {
+export default function AdminTimeTableView() {
   const router = useRouter();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState({ instructor: '', classroom: '', subject: '' });
   const [isEditMode, setIsEditMode] = useState(false);
   
-  const changedSchedules = useRef<Map<string, any>>(new Map());
+  const changedSchedules = useRef<Map<string, ChangedSchedule>>(new Map());
 
   useEffect(() => {
     const loadData = async () => {
@@ -99,7 +100,7 @@ const handleSave = async () => {
       changedSchedules.current.clear();
       setIsEditMode(false);
       alert('모든 변경사항이 저장되었습니다.');
-    } catch (e) {
+    } catch {
       alert('저장 중 오류 발생');
     } finally {
       setIsLoading(false);
@@ -107,7 +108,8 @@ const handleSave = async () => {
   };
 
   return (
-<div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6">
+      {isLoading && <div className="text-sm text-primary">데이터 로딩 중...</div>}
       {/* 필터 영역 */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">

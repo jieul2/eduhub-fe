@@ -77,3 +77,11 @@ export interface UpdateScheduleTimePayload {
   startTime: string;
   endTime: string;
 }
+
+export interface ChangedSchedule {
+  classId: string;
+  scheduleId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+}

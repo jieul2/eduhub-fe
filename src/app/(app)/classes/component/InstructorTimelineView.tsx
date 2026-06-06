@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, MapPin, CheckSquare, FileText, CalendarPlus } from 'lucide-react';
+import { CheckSquare, FileText } from 'lucide-react';
 import Button from '@/components/ui/Button/Button';
 import { ClassData } from '@/types/classes.types';
 import { DAYS_KOR } from '@/utils/timeTable.utils';

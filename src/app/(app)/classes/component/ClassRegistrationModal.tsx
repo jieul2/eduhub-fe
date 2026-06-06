@@ -107,7 +107,7 @@ const ClassRegistrationModal = ({ isOpen, onClose, onSuccess }: ClassRegistratio
       alert("수업이 등록되었습니다.");
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch {
       setFormError("수업 등록 중 오류가 발생했습니다.");
     } finally {
       setIsSubmitting(false);

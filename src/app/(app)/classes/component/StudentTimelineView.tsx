@@ -3,12 +3,10 @@
 import React from 'react';
 import { Clock, BookOpen } from 'lucide-react';
 import { ClassData } from '@/types/classes.types';
-import { DAYS_KOR } from '@/utils/timeTable.utils';
 
-// props에 기본값으로 빈 배열을 주거나, 내부에서 방어 코드를 추가합니다.
 export default function StudentTimelineView({ classes = [] }: { classes?: ClassData[] }) {
   
-  // 🚨 안전 장치: classes가 undefined/null인 경우를 대비해 확실한 배열로 변환
+  // classes가 undefined/null인 경우를 대비해 확실한 배열로 변환
   const safeClasses = Array.isArray(classes) ? classes : [];
 
   return (
