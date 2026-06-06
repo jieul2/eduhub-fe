@@ -10,6 +10,7 @@ import { X, Pencil, Check } from 'lucide-react';
 import { getTimetable, updateScheduleTime } from '@/lib/api/classes';
 import { ClassData } from '@/types/classes.types';
 import { getDayIndex } from '@/utils/timeTable.utils';
+import { useRouter } from 'next/navigation';
 
 // 시간표 고정을 위한 임의의 날짜 (2024년 1월 8일 월요일 ~ 1월 13일 토요일)
 // FullCalendar에서 반복적인 주간 시간표를 표현하기 위해 사용
@@ -20,6 +21,7 @@ const getDummyDate = (dayOfWeek: number, timeStr: string) => {
 };
 
 export default function TimeTableView() {
+  const router = useRouter();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [filters, setFilters] = useState({ instructor: '', classroom: '', subject: '' });
@@ -121,11 +123,11 @@ const handleSave = async () => {
           ))}
         </div>
         <button 
-  onClick={() => isEditMode ? handleSave() : setIsEditMode(true)}
-  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isEditMode ? 'bg-primary text-white' : 'bg-border text-ink'}`}
->
-  {isEditMode ? <><Check size={16} /> 변경사항 저장</> : <><Pencil size={16} /> 일정 수정하기</>}
-</button>
+          onClick={() => isEditMode ? handleSave() : setIsEditMode(true)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${isEditMode ? 'bg-primary text-white' : 'bg-border text-ink'}`}
+        >
+          {isEditMode ? <><Check size={16} /> 변경사항 저장</> : <><Pencil size={16} /> 일정 수정하기</>}
+        </button>
       </div>
       
       {/* 필터 칩 */}
@@ -154,6 +156,11 @@ const handleSave = async () => {
           editable={isEditMode}
           eventDrop={handleEventChange}
           eventResize={handleEventChange}
+          eventClick={(info) => {
+        const { classId } = info.event.extendedProps;
+        // 관리자는 학생 배정 페이지로 이동
+        router.push(`/classes/${classId}/assignment`);
+      }}
           eventContent={(arg) => {
   // 수업이 너무 짧아(예: 30분 미만) 공간이 협소할 때를 위한 조건부 렌더링
   const isCompact = arg.event.end!.getTime() - arg.event.start!.getTime() < 60 * 60 * 1000;

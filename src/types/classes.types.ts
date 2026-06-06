@@ -25,9 +25,9 @@ export interface ScheduleItem {
 }
 
 export interface StudentEnrollment {
-  studentId: string; // 필요시 PopulatedStudent 타입으로 확장 가능
-  enrolledAt: string;
-  droppedAt: string | null;
+  studentId: string | { _id: string; username: string };
+  enrolledAt: string | Date;
+  droppedAt?: string | Date | null;
 }
 
 export interface ClassData {
@@ -57,6 +57,19 @@ export interface CreateClassPayload {
   targetDate?: string | null;
   color?: string;
   schedules: Omit<ScheduleItem, "_id">[];
+}
+
+export interface UpdateClassPayload {
+  instructorId?: string;
+  subjectId?: string;
+  classroomId?: string;
+  startDate?: Date | string;
+  endDate?: Date | string | null;
+  targetDate?: Date | string | null;
+  color?: string;
+  schedules?: ScheduleItem[];
+  students?: StudentEnrollment[];
+  status?: "active" | "inactive";
 }
 
 export interface UpdateScheduleTimePayload {

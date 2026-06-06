@@ -3,6 +3,7 @@ import axiosInstance from "../axiosInstance";
 import { 
   ClassData, 
   CreateClassPayload, 
+  UpdateClassPayload, 
   UpdateScheduleTimePayload 
 } from "../../types/classes.types";
 
@@ -46,9 +47,9 @@ export const createClass = async (payload: CreateClassPayload): Promise<ClassDat
 };
 
 // 수업 전체 수정 (PUT)
-export const updateClass = async (classId: string, payload: Partial<CreateClassPayload & { status: "active" | "inactive" }>): Promise<ClassData> => {
-  const response = await axiosInstance.put<{ message: string; class: ClassData }>(`/classes/${classId}`, payload);
-  return response.data.class;
+export const updateClass = async (classId: string, payload: UpdateClassPayload) => {
+  const response = await axiosInstance.patch(`/classes/${classId}`, payload);
+  return response.data;
 };
 
 // 수업 삭제
@@ -67,6 +68,11 @@ export const updateScheduleTime = async (
     payload
   );
   return response.data.class;
+};
+
+export const getDetailClass = async (classId: string) => {
+  const response = await axiosInstance.get(`/classes/${classId}`);
+  return response.data;
 };
 
 // ─── 드롭다운 데이터 전용 조회 API ──────────────────────────────────────────
