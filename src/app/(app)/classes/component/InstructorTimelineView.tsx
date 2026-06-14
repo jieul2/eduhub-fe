@@ -25,7 +25,9 @@ interface InstructorScheduleItem {
 
 export default function InstructorTimelineView({ classes = [] }: { classes?: ClassData[] }) {
   const router = useRouter();
-  const safeClasses = Array.isArray(classes) ? classes : [];
+  const safeClasses = useMemo(() => {
+  return Array.isArray(classes) ? classes : [];
+}, [classes]);
   
   // 오늘 요일 (1: 월요일 ~ 6: 토요일)
   const currentDay = new Date().getDay();

@@ -23,7 +23,9 @@ interface ScheduleItem {
 }
 
 export default function StudentTimelineView({ classes = [] }: { classes?: ClassData[] }) {
-  const safeClasses = Array.isArray(classes) ? classes : [];
+  const safeClasses = useMemo(() => {
+  return Array.isArray(classes) ? classes : [];
+}, [classes]);
   
   // 오늘 요일 (1: 월요일 ~ 6: 토요일)
   const currentDay = new Date().getDay();
